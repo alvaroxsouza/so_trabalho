@@ -25,10 +25,17 @@ function init() {
 	renderer.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
 	
 	processosFolder = gui.addFolder('Processos');
-	var processos = {Quantum: 1, Sobrecarga: 1, 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso};
+	var processos = {Quantum: 0, Sobrecarga: 0, 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso};
 
-	controllerQuantumSistema = processosFolder.add( processos, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
-	controllerSobreCargaSistema = processosFolder.add( processos, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
+	controllerQuantumSistema = processosFolder.add( processos, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+	controllerQuantumSistema.onChange((value) => {
+		setQuantum(value);
+	})
+	controllerSobreCargaSistema = processosFolder.add( processos, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+	controllerSobreCargaSistema.onChange((value) => {
+		setSobrecarga(value);
+	})
+
 	controllerProcessosAddProcesso = processosFolder.add(processos, 'Adiciona Processo');
 	controllerProcessosRemoveProcesso = processosFolder.add(processos, 'Remove Processo');
 	
@@ -85,16 +92,25 @@ function addProcesso() {
 	controllerProcessosAddProcesso.onChange(() => {
 		var processoCorrenteController = processosFolder.addFolder('Processo '+quantidadeDeProcessos);
 		listaDeProcessos.push(processosFolder.__folders['Processo '+quantidadeDeProcessos]);
-		var processoVariaveis = {'Tempo de Chegada': 1, 'Tempo de Execução': 1, 'Deadline': 1}
+		var processoVariaveis = {'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0}
 		
-		processoCorrenteController.add( processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
-		processoCorrenteController.add( processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
-		processoCorrenteController.add( processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
+		processoCorrenteController.add( processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+		processoCorrenteController.add( processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+		processoCorrenteController.add( processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
 		
 
 		quantidadeDeProcessos++;
 	})
 }
+
+function setQuantum(value) {
+	quantum = value;
+}
+
+function setSobrecarga(value) {
+	sobrecarga = value;
+}
+
 
 function iniciar() {
 	render()
