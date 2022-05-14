@@ -1,40 +1,43 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
-import Stats from "../node_modules/three/examples/jsm/libs/stats.module.js"
 import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js'
 
 const gui = new GUI({name: "Escalonamento"})
+gui.width = 600
+
 var scene, renderer, camera, axesHelper;
 
 var controllerQuantumSistema, controllerSobreCargaSistema, controllerProcessosAddProcesso, controllerProcessosRemoveProcesso;
 var processosFolder;
 var quantidadeDeProcessos = 1;
-var listaDeProcessos = []
+var listaDeProcessos = [];
 
 const LIMITE_SUPERIOR = 100;
-const LIMITE_INFERIOR = 1;
+const LIMITE_INFERIOR = 0;
+
+// Variáveis de sistema
+var quantum, sobrecarga;
+
 
 function init() {
 
 	renderer = new THREE.WebGLRenderer();
-	const stats = Stats()
 
 	renderer.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
 	
 	processosFolder = gui.addFolder('Processos');
-	var processos = {Quantum: 1, Sobrecarga: 1, adicionarProcesso: addProcesso, removerProcesso: removeProcesso};
+	var processos = {Quantum: 1, Sobrecarga: 1, 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso};
 
-	controllerQuantumSistema = processosFolder.add( processos, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
-	controllerSobreCargaSistema = processosFolder.add( processos, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
-	controllerProcessosAddProcesso = processosFolder.add(processos, 'adicionarProcesso');
-	controllerProcessosRemoveProcesso = processosFolder.add(processos, 'removerProcesso');
+	controllerQuantumSistema = processosFolder.add( processos, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
+	controllerSobreCargaSistema = processosFolder.add( processos, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
+	controllerProcessosAddProcesso = processosFolder.add(processos, 'Adiciona Processo');
+	controllerProcessosRemoveProcesso = processosFolder.add(processos, 'Remove Processo');
 	
 	processosFolder.open()
-
 	
 	var algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
-	var entradaVazia = {algoritmo: ''};
+	var entradaVazia = {Algoritmo: ''};
 	const algoritmosDeEscalonamento = [ 'FIFO', 'Round-Robin', 'EDF', 'SJF'];
-	const controllerAlgoritmosEscalonamento = algoritmosFolder.add( entradaVazia, 'algoritmo' ).options( algoritmosDeEscalonamento )
+	const controllerAlgoritmosEscalonamento = algoritmosFolder.add( entradaVazia, 'Algoritmo' ).options( algoritmosDeEscalonamento )
 	algoritmosFolder.open()
 
 	controllerAlgoritmosEscalonamento.onChange(() => {
@@ -61,8 +64,6 @@ function init() {
 
     const element = document.getElementById('canvas-three')
 	
-	element.appendChild(stats.dom)
-	
 	const width = 900;
 	const height = 500;
 
@@ -78,33 +79,33 @@ function init() {
 	axesHelper = new THREE.AxesHelper(10000);
 
 	scene.add(axesHelper);
-
-	render()
 };
 
 function addProcesso() {
 	controllerProcessosAddProcesso.onChange(() => {
-		var processoCorrenteController = processosFolder.addFolder('Processo'+quantidadeDeProcessos);
-		var processoVariaveis = {tempoChegada: 1, tempoExecucao: 1, deadline: 1, quantumSistema: 1, sobrecargaSistema: 1}
+		var processoCorrenteController = processosFolder.addFolder('Processo '+quantidadeDeProcessos);
+		listaDeProcessos.push(processosFolder.__folders['Processo '+quantidadeDeProcessos]);
+		var processoVariaveis = {'Tempo de Chegada': 1, 'Tempo de Execução': 1, 'Deadline': 1}
 		
-		processoCorrenteController.add( processoVariaveis, 'tempoChegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
-		processoCorrenteController.add( processoVariaveis, 'tempoExecucao', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
-		processoCorrenteController.add( processoVariaveis, 'deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
+		processoCorrenteController.add( processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
+		processoCorrenteController.add( processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
+		processoCorrenteController.add( processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).setValue(0);
 		
-		listaDeProcessos.push(processoCorrenteController);
 
 		quantidadeDeProcessos++;
 	})
 }
 
 function iniciar() {
-	console.log("Iniciado")
+	render()
 }
 
 function removeProcesso() {
 	controllerProcessosRemoveProcesso.onChange(() => {
 		if((quantidadeDeProcessos-1) >= 1) {
-			processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo'+(quantidadeDeProcessos-1)])
+			processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo '+(quantidadeDeProcessos-1)])
+			listaDeProcessos.pop()
+			console.log(listaDeProcessos)
 			quantidadeDeProcessos--;
 		}
 	})
