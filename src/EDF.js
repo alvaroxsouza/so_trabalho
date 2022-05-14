@@ -32,51 +32,52 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 
 	let t = 0; // Current time
 
+	let control = 0;
 	// Keep traversing processes in round robin manner
 	// until all of them are not done.
 	while (1) {
-		let done = true;
+		if (priorityEndline[control].timeStart >= t) { 
+			// If burst time of a process is greater than 0
+			// then only need to process further
+			if (priorityEndline[control].burstTimeNow > 0) {
+				done = false; // There is a pending process
 
-		// Traverse all processes one by one repeatedly
-		for (let i = 0; i < n; i++) {
-			if (priorityEndline[i].timeStart >= t) { 
-				// If burst time of a process is greater than 0
-				// then only need to process further
-				if (priorityEndline[i].burstTimeNow > 0) {
-					done = false; // There is a pending process
+				if (priorityEndline[control].burstTimeNow > quantum) {
+					// Increase the value of t i.e. shows
+					// how much time a process has been processed
+					t += quantum;
+					t += overload;
 
-					if (priorityEndline[i].burstTimeNow > quantum) {
-						// Increase the value of t i.e. shows
-						// how much time a process has been processed
-						t += quantum;
-						t += overload;
+					// Decrease the burst_time of current process
+					// by quantum
+					priorityEndline[control].burstTimeNow -= quantum;
+				}
 
-						// Decrease the burst_time of current process
-						// by quantum
-						priorityEndline[i].burstTimeNow -= quantum;
-					}
+				// If burst time is smaller than or equal to
+				// quantum. Last cycle for this process
+				else {
+					// Increase the value of t i.e. shows
+					// how much time a process has been processed
+					t = t + priorityEndline[control].burstTimeNow;
 
-					// If burst time is smaller than or equal to
-					// quantum. Last cycle for this process
-					else {
-						// Increase the value of t i.e. shows
-						// how much time a process has been processed
-						t = t + priorityEndline[i].burstTimeNow;
+					// Waiting time is current time minus time
+					// used by this process
+					priorityEndline[control].waitingTime = t - priorityEndline[control].burstTime;
 
-						// Waiting time is current time minus time
-						// used by this process
-						priorityEndline[i].waitingTime = t - priorityEndline[i].burstTime;
+					// As the process gets fully executed
+					// make its remaining burst time = 0
+					priorityEndline[control].burstTimeNow = 0;
 
-						// As the process gets fully executed
-						// make its remaining burst time = 0
-						priorityEndline[i].burstTimeNow = 0;
-					}
+					control++;
 				}
 			}
 		}
-
+		else{
+			t++;
+		}
+		console.log("control: " + control + " n: " + n);
 		// If all processes are done
-		if (done == true)
+		if (control > n)
 			break;
 	}
 }
@@ -86,7 +87,7 @@ const findTurnAroundTime = (n) => {
 	// calculating turnaround time by adding
 	// bt[i] + wt[i]
 	for (let i = 0; i < n; i++)
-		priorityEndline[i].turnAround = priorityEndline[i].burstTime + priorityEndline[i].waitingTime;
+		priorityEndline[i].turnAround = priorityEndline[i].burstTime + priorityEndline[i].waitingTime - priorityEndline[i].timeStart;
 }
 
 // Function to calculate average time
