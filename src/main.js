@@ -2,16 +2,16 @@ import * as THREE from '../node_modules/three/build/three.module.js';
 import Stats from "../node_modules/three/examples/jsm/libs/stats.module.js"
 import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js'
 
-var scene, renderer, camera, axesHelper;
-var controllerProcessosAddProcesso, controllerProcessosRemoveProcesso;
-var quantidadeDeProcessos = 1;
 const gui = new GUI({name: "Escalonamento"})
+var scene, renderer, camera, axesHelper;
 
+var controllerQuantumSistema, controllerSobreCargaSistema, controllerProcessosAddProcesso, controllerProcessosRemoveProcesso;
 var processosFolder;
-
+var quantidadeDeProcessos = 1;
 var listaDeProcessos = []
-const LIMITE_SUPERIOR_QUANTIDADE_DE_PROCESSOS = 100;
-const LIMITE_INFERIOR_QUANTIDADE_DE_PROCESSOS = 1;
+
+const LIMITE_SUPERIOR = 100;
+const LIMITE_INFERIOR = 1;
 
 function init() {
 
@@ -21,34 +21,42 @@ function init() {
 	renderer.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
 	
 	processosFolder = gui.addFolder('Processos');
-	var processos = {adicionarProcesso: addProcesso, removerProcesso: removeProcesso};
+	var processos = {Quantum: 1, Sobrecarga: 1, adicionarProcesso: addProcesso, removerProcesso: removeProcesso};
 
+	controllerQuantumSistema = processosFolder.add( processos, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
+	controllerSobreCargaSistema = processosFolder.add( processos, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
 	controllerProcessosAddProcesso = processosFolder.add(processos, 'adicionarProcesso');
 	controllerProcessosRemoveProcesso = processosFolder.add(processos, 'removerProcesso');
-
+	
 	processosFolder.open()
 
 	
 	var algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
-	var algoritmosEscalonamento = {name: ''};
-	const states = [ 'FIFO', 'Round-Robin', 'EDF', 'SJF'];
-	const clipCtrl = algoritmosFolder.add( algoritmosEscalonamento, 'name' ).options( states )
+	var entradaVazia = {algoritmo: ''};
+	const algoritmosDeEscalonamento = [ 'FIFO', 'Round-Robin', 'EDF', 'SJF'];
+	const controllerAlgoritmosEscalonamento = algoritmosFolder.add( entradaVazia, 'algoritmo' ).options( algoritmosDeEscalonamento )
 	algoritmosFolder.open()
 
-	clipCtrl.onChange( () => {
-		if(clipCtrl.object.name == "FIFO") {
+	controllerAlgoritmosEscalonamento.onChange(() => {
+		if(controllerAlgoritmosEscalonamento.object.algoritmo == "FIFO") {
 			console.log("FIFO")
 		}
-		if(clipCtrl.object.name == "Round-Robin") {
+		if(controllerAlgoritmosEscalonamento.object.algoritmo == "Round-Robin") {
 			console.log("RR")
 		}
-		if(clipCtrl.object.name == "EDF") {
+		if(controllerAlgoritmosEscalonamento.object.algoritmo == "EDF") {
 			console.log("EDF")
 		}
-		if(clipCtrl.object.name == "SJF") {
+		if(controllerAlgoritmosEscalonamento.object.algoritmo == "SJF") {
 			console.log("SJF")
 		}
 	})
+
+	
+	var iniciarProcessosFolder = gui.addFolder('Iniciar');
+	var iniciarProcessos = {Run: iniciar};
+	const controllerIniciarProcessos = iniciarProcessosFolder.add( iniciarProcessos, 'Run' )
+	iniciarProcessosFolder.open()
 
 
     const element = document.getElementById('canvas-three')
@@ -75,17 +83,30 @@ function init() {
 };
 
 function addProcesso() {
-	controllerProcessosAddProcesso.onChange( () => {
-		console.log(quantidadeDeProcessos)
-		listaDeProcessos.push(processosFolder.addFolder('Processo'+quantidadeDeProcessos));
+	controllerProcessosAddProcesso.onChange(() => {
+		var processoCorrenteController = processosFolder.addFolder('Processo'+quantidadeDeProcessos);
+		var processoVariaveis = {tempoChegada: 1, tempoExecucao: 1, deadline: 1, quantumSistema: 1, sobrecargaSistema: 1}
+		
+		processoCorrenteController.add( processoVariaveis, 'tempoChegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
+		processoCorrenteController.add( processoVariaveis, 'tempoExecucao', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
+		processoCorrenteController.add( processoVariaveis, 'deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1 );
+		
+		listaDeProcessos.push(processoCorrenteController);
+
 		quantidadeDeProcessos++;
 	})
 }
 
+function iniciar() {
+	console.log("Iniciado")
+}
+
 function removeProcesso() {
 	controllerProcessosRemoveProcesso.onChange(() => {
-		processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo'+(quantidadeDeProcessos-1)])
-		quantidadeDeProcessos--;
+		if((quantidadeDeProcessos-1) >= 1) {
+			processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo'+(quantidadeDeProcessos-1)])
+			quantidadeDeProcessos--;
+		}
 	})
 }
 
