@@ -11,7 +11,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: #e39ec1;
+    background-color: #8D3B72;
     min-height: 10%;
 }
 
@@ -19,12 +19,18 @@ h1 {
     display: flex;
     flex-direction: row;
     justify-content: center;
-    color: #371F39;
+    color: #DEBAC0;
+}
+
+h4 {
+    color: #FFF;
+    text-align: end;
+    padding-top: 20PX;
 }
 
 #body-content {
     min-height: 90%;
-    background-color: #2F323A;
+    background-color: #371F39;
 
     display: flex;
     flex-direction: column;
