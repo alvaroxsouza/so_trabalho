@@ -7,7 +7,7 @@
 var vetorPrincipal; //Vetor para funcionamento do algoritmo
 var vetorAuxiliar; //Vetor para ordenar pelo deadline
 var vetorCopiaProcessos; //Vetor para ordenar pelo tempo de chegada
-var over;
+var over; //Variável que guarda a sobrecarga
 
 class Processo {
 	constructor(id, timeStart, deadline, burstTime) {
@@ -22,10 +22,7 @@ class Processo {
 	}
 }
 
-//function ordenaPorOrdemDeChegada ()
-
-// Function to find the waiting time for all
-// processes
+// Função que calcula o tempo de espera de cada processo
 const findWaitingTime = (processes, n, quantum, overload) => {
 	let t = 0; // Current time
 	vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
@@ -62,35 +59,33 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 			return 0;
 		});
 
+		//Adiciona os processos aptos na fila principal
 		for (let i = 0; i < vetorAuxiliar.length; i++) {
-			//Adiciona na fila principal
 			if (vetorPrincipal)
 				vetorPrincipal.push(vetorAuxiliar[i]);
 		}
 
+		//Se existir processo na fila
 		if (vetorPrincipal && vetorPrincipal.length > 0) {
 			if (vetorPrincipal[0].burstTimeNow > 0) {
 
-				if (vetorPrincipal[0].burstTimeNow > quantum) {
-					// Increase the value of t i.e. shows
-					// how much time a process has been processed
-					t += quantum;
-					t += overload;
+				//Se o tempo de execução restante for maior que o quantum
+				if (vetorPrincipal[0].burstTimeNow > quantum) { 
 
-					// Decrease the burst_time of current process
-					// by quantum
+					t += quantum; //Adiciona um quantum no tempo
+					t += overload; //Adiciona uma sobrecarga
+
+					// Diminui do tempo de execução restante o valor do quantum
 					vetorPrincipal[0].burstTimeNow -= quantum;
 				}
 
-				// If burst time is smaller than or equal to
-				// quantum. Last cycle for this process
+				//Se o tempo de execução restante for menor ou igual ao quantum
+				//o último ciclo desse processo será executado
 				else {
-					// Increase the value of t i.e. shows
-					// how much time a process has been processed
+					//Aumenta o valor do tempo pelo tempo de execução que falta no processo
 					t = t + vetorPrincipal[0].burstTimeNow;
 
-					// Waiting time is current time minus time
-					// used by this process
+					//Define o tempo de espera do processo como o tempo atual menos o tempo de execução
 					if (processes) {
 						for (let i = 0; i < n; i++) {
 							if (vetorPrincipal[0]) {
@@ -101,17 +96,19 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 						}
 					}
 
-					// As the process gets fully executed
-					// make its remaining burst time = 0
+					//O processo foi totalmente executado, então seu tempo de execução restante é 0
 					vetorPrincipal[0].burstTimeNow = 0;
+					//Retira o processo executado da fila
 					vetorPrincipal.shift();
-					//Retirando os elementos nulos
+					//Retira os elementos nulos do vetor
 					if (vetorPrincipal) {
 						vetorPrincipal = vetorPrincipal.filter(function (el) {
 							return el != null;
 						});
 					}
-
+					//Se o vetor principal ficou vazio após a execução
+					//E todos os processos na cópia estão como 0, finaliza o loop
+					//TODO if todos os elementos da cópia são iguais a zero
 					if (vetorPrincipal.length == 0) {
 						break;
 					}
