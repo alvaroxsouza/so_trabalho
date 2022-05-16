@@ -1,5 +1,15 @@
 var over, priorityEndline;
 
+/*
+ * Para cada volta do looping, ordenamos o vetor de processos e testamos.
+ * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
+ * Se existir mais de 1 processo com o tempo de chegada >= tempo atual,
+ * ordena pelo deadline e adiciona no vetor principal.
+ */
+var vetorPrincipal = []; //Vetor para funcionamento do algoritmo
+var vetorAuxiliar; //Vetor para ordenar pelo deadline
+var vetorCopiaProcessos; //Vetor para ordenar pelo tempo de chegada
+
 class Processo {
 	constructor(id, timeStart, deadline, burstTime) {
 		this.id = id;
@@ -13,36 +23,64 @@ class Processo {
 	}
 }
 
+//function ordenaPorOrdemDeChegada ()
+
 // Function to find the waiting time for all
 // processes
 const findWaitingTime = (processes, n, quantum, overload) => {
-	priorityEndline = new Array(n).fill(0); //vetor para ordenação endline
-	for (let i = 0; i < n; i++) //faz uma cópia da lista de processos
-		priorityEndline[i] = processes[i];
+	let t = 0; // Current time
+	let control = 0; // Variável auxiliar para percorrer o vetor de processos	
 
-	priorityEndline.sort(function (a, b) { //sort para ordenar pelo endline
-		if (a.deadline > b.deadline) {
-		  return 1;
+	vetorCopiaProcessos = new Array(n).fill(0); //Faz uma cópia dos processos
+	for (let i = 0; i < n; i++)
+		vetorCopiaProcessos[i] = processes[i];
+	vetorCopiaProcessos.sort(function (a, b) { //Ordenando pela ordem de chegada de cada processo
+		if (a.timeStart > b.timeStart) {
+			return 1;
 		}
-		if (a.deadline < b.deadline) {
-		  return -1;
+		if (a.timeStart < b.timeStart) {
+			return -1;
 		}
 		return 0;
-	  });
+	});
 
-	let t = 0; // Current time
-
-	let control = 0;
-	// Keep traversing processes in round robin manner
-	// until all of them are not done.
+	//Loop de execução
 	while (1) {
-		if (priorityEndline[control].timeStart >= t) { 
-			// If burst time of a process is greater than 0
-			// then only need to process further
-			if (priorityEndline[control].burstTimeNow > 0) {
-				done = false; // There is a pending process
+		vetorAuxiliar = [];
+		for (let i = 0; i < n; i++){ //Pega os processos que podem ser executados e guarda no vetor auxiliar
+			if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].timeStart >= t) { 
+				vetorAuxiliar.push(vetorCopiaProcessos[i]);
+				vetorCopiaProcessos[i] = 0;
+			}
+		}
+		vetorAuxiliar.sort(function (a, b) { //Ordena o vetor auxiliar pelo deadline
+			if (a.deadline > b.deadline) {
+				return 1;
+			}
+			if (a.deadline < b.deadline) {
+				return -1;
+			}
+			return 0;
+		});
+		console.log("Tamanho auxiliar " + vetorAuxiliar.length)
+		for (let i = 0; i < vetorAuxiliar.length ; i++){
+			console.log("Entrou")
+			//Adiciona na fila principal
+			if(vetorPrincipal)
+				vetorPrincipal[i].push(vetorAuxiliar[i]);
+		} 
+		console.log("Principal: " + vetorPrincipal);
+		//Retirando os elementos nulos
+		if(vetorPrincipal){
+			vetorPrincipal = vetorPrincipal.filter(function (el) {
+				return el != null;
+			});
+		}
 
-				if (priorityEndline[control].burstTimeNow > quantum) {
+		if(vetorPrincipal && vetorPrincipal.length > 0){
+			if (vetorPrincipal[0].burstTimeNow > 0) {
+				
+				if (vetorPrincipal[0].burstTimeNow > quantum) {
 					// Increase the value of t i.e. shows
 					// how much time a process has been processed
 					t += quantum;
@@ -50,7 +88,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 
 					// Decrease the burst_time of current process
 					// by quantum
-					priorityEndline[control].burstTimeNow -= quantum;
+					vetorPrincipal[0].burstTimeNow -= quantum;
 				}
 
 				// If burst time is smaller than or equal to
@@ -58,22 +96,22 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 				else {
 					// Increase the value of t i.e. shows
 					// how much time a process has been processed
-					t = t + priorityEndline[control].burstTimeNow;
+					t = t + vetorPrincipal[0].burstTimeNow;
 
 					// Waiting time is current time minus time
 					// used by this process
-					priorityEndline[control].waitingTime = t - priorityEndline[control].burstTime;
+					vetorPrincipal[0].waitingTime = t - vetorPrincipal[0].burstTime;
 
 					// As the process gets fully executed
 					// make its remaining burst time = 0
-					priorityEndline[control].burstTimeNow = 0;
+					vetorPrincipal[0].burstTimeNow = 0;
 
 					control++;
 				}
 			}
-		}
-		else{
-			t++;
+			else{ 
+				t++;
+			}
 		}
 		console.log("control: " + control + " n: " + n);
 		// If all processes are done
@@ -122,17 +160,14 @@ const findavgTime = (processes, n, quantum) => {
 }
 
 function main() {
-	// Driver code
-	// process id's
-
 	over = 1;
 	// Time quantum
 	let quantum = 2;
 	// findavgTime(processes, n, burst_time, quantum, over, timeStart);
 
-	var teste = new Processo(1, 3, 10, 2);
-	var teste2 = new Processo(2, 0, 8, 6);
-	var teste3 = new Processo(3, 7, 14, 4);
+	var teste = new Processo(1, 0, 10, 4);
+	var teste2 = new Processo(2, 2, 8, 6);
+	var teste3 = new Processo(3, 4, 10, 7);
 
 	let n = 3;
 
