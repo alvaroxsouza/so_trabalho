@@ -6,7 +6,7 @@ var over, priorityEndline;
  * Se existir mais de 1 processo com o tempo de chegada >= tempo atual,
  * ordena pelo deadline e adiciona no vetor principal.
  */
-var vetorPrincipal = []; //Vetor para funcionamento do algoritmo
+var vetorPrincipal; //Vetor para funcionamento do algoritmo
 var vetorAuxiliar; //Vetor para ordenar pelo deadline
 var vetorCopiaProcessos; //Vetor para ordenar pelo tempo de chegada
 
@@ -29,7 +29,7 @@ class Processo {
 // processes
 const findWaitingTime = (processes, n, quantum, overload) => {
 	let t = 0; // Current time
-	let control = 0; // Variável auxiliar para percorrer o vetor de processos	
+	vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
 
 	vetorCopiaProcessos = new Array(n).fill(0); //Faz uma cópia dos processos
 	for (let i = 0; i < n; i++)
@@ -48,7 +48,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 	while (1) {
 		vetorAuxiliar = [];
 		for (let i = 0; i < n; i++){ //Pega os processos que podem ser executados e guarda no vetor auxiliar
-			if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].timeStart >= t) { 
+			if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].timeStart <= t) { 
 				vetorAuxiliar.push(vetorCopiaProcessos[i]);
 				vetorCopiaProcessos[i] = 0;
 			}
@@ -62,20 +62,14 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 			}
 			return 0;
 		});
-		console.log("Tamanho auxiliar " + vetorAuxiliar.length)
+		//console.log("Tempo " + t + "Auxiliar:")
+		//console.log(vetorAuxiliar)
 		for (let i = 0; i < vetorAuxiliar.length ; i++){
-			console.log("Entrou")
 			//Adiciona na fila principal
 			if(vetorPrincipal)
-				vetorPrincipal[i].push(vetorAuxiliar[i]);
+				vetorPrincipal.push(vetorAuxiliar[i]);
 		} 
-		console.log("Principal: " + vetorPrincipal);
-		//Retirando os elementos nulos
-		if(vetorPrincipal){
-			vetorPrincipal = vetorPrincipal.filter(function (el) {
-				return el != null;
-			});
-		}
+		//console.log(vetorPrincipal);
 
 		if(vetorPrincipal && vetorPrincipal.length > 0){
 			if (vetorPrincipal[0].burstTimeNow > 0) {
@@ -106,17 +100,28 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 					// make its remaining burst time = 0
 					vetorPrincipal[0].burstTimeNow = 0;
 
-					control++;
+					console.log(vetorPrincipal)
+					vetorPrincipal.shift();
+					console.log(vetorPrincipal)
+
+					//Retirando os elementos nulos
+					if(vetorPrincipal){
+						vetorPrincipal = vetorPrincipal.filter(function (el) {
+							return el != null;
+						});
+					}
+					if(vetorPrincipal.length == 0){
+						console.log("Tempo: " + t)
+						break;
+					}
 				}
 			}
 			else{ 
 				t++;
+				console.log("novo tempo " + t)
 			}
 		}
-		console.log("control: " + control + " n: " + n);
-		// If all processes are done
-		if (control > n)
-			break;
+		console.log("Tempo: " + t)
 	}
 }
 
@@ -124,8 +129,10 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 const findTurnAroundTime = (n) => {
 	// calculating turnaround time by adding
 	// bt[i] + wt[i]
-	for (let i = 0; i < n; i++)
-		priorityEndline[i].turnAround = priorityEndline[i].burstTime + priorityEndline[i].waitingTime - priorityEndline[i].timeStart;
+	for (let i = 0; i < n; i++){
+		if(priorityEndline)
+			priorityEndline[i].turnAround = priorityEndline[i].burstTime + priorityEndline[i].waitingTime - priorityEndline[i].timeStart;
+	}
 }
 
 // Function to calculate average time
@@ -145,11 +152,13 @@ const findavgTime = (processes, n, quantum) => {
 	// Calculate total waiting time and total turn
 	// around time
 	for (let i = 0; i < n; i++) {
-		total_wt = total_wt + priorityEndline[i].waitingTime;
-		total_tat = total_tat + priorityEndline[i].turnAround;
+		if(priorityEndline){
+			total_wt = total_wt + priorityEndline[i].waitingTime;
+			total_tat = total_tat + priorityEndline[i].turnAround;
 
-		//document.write(`${i + 1} ${bt[i]} ${wt[i]} ${tat[i]}<br/>`);
-		console.log(`${priorityEndline[i].id} ${priorityEndline[i].burstTime} ${priorityEndline[i].waitingTime} ${priorityEndline[i].turnAround}`);
+			//document.write(`${i + 1} ${bt[i]} ${wt[i]} ${tat[i]}<br/>`);
+			console.log(`${priorityEndline[i].id} ${priorityEndline[i].burstTime} ${priorityEndline[i].waitingTime} ${priorityEndline[i].turnAround}`);
+		}
 	}
 
 	console.log(`Average waiting time = ${total_wt / n}`);
@@ -175,6 +184,7 @@ function main() {
 	processes[0] = teste;
 	processes[1] = teste2;
 	processes[2] = teste3;
+
 
 	findavgTime(processes, n, quantum);
 }
