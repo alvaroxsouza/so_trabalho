@@ -6,71 +6,103 @@ gui.width = 600
 
 var scene, renderer, camera, axesHelper;
 
-var controllerQuantumSistema, controllerSobreCargaSistema, controllerProcessosAddProcesso, controllerProcessosRemoveProcesso;
-var processosFolder;
+/* Pastas do GUI */
+var sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
+
+var controllerProcessosAddProcesso, controllerProcessosRemoveProcesso;
 var quantidadeDeProcessos = 1;
-var listaDeProcessos = [];
 
 const LIMITE_SUPERIOR = 100;
 const LIMITE_INFERIOR = 0;
 
-// Variáveis de sistema
-var quantum, sobrecarga;
+var listaDeProcessos = [];
+var processoEntradaSistema = []
+var controllers = []
+
+/* Estrutura para guardar o quantum e a sobrecarga do sistema */
+class SistemaInput {
+	constructor(quantum, sobrecarga) {
+		this.quantum = quantum;
+		this.sobrecarga = sobrecarga;
+	}
+	
+	setQuantum(quantum) {
+		this.quantum = quantum;
+	}
+	
+	setSobrecarga(sobrecarga) {
+		this.sobrecarga = sobrecarga;
+	}
+}
+
+var sistema = new SistemaInput();
+
+/* Classe que guarda as variáveis obtidas através dos controllers, para os processos */
+class ProcessoInput {
+	constructor(tempoDeChegada, tempoDeExecucao, deadline) {
+		this.tempoDeChegada = tempoDeChegada;
+		this.tempoDeExecucao = tempoDeExecucao;
+		this.deadline = deadline;
+	}
+
+	setTempoDeChegada(tempoDeChegada) {
+		this.tempoDeChegada = tempoDeChegada;
+	}
+
+	setTempoDeExecucao(tempoDeExecucao) {
+		this.tempoDeExecucao = tempoDeExecucao;
+	}
+
+	setDeadline(deadline) {
+		this.deadline = deadline;
+	}
+}
 
 
 function init() {
-
 	renderer = new THREE.WebGLRenderer();
-
 	renderer.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
 	
+	sistemaFolder = gui.addFolder('Sistema');
+	var objetoSistema = {Quantum: 0, Sobrecarga: 0}
+	sistemaFolder.add( objetoSistema, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).onChange( (value) => { sistema.setQuantum(value); } )
+	sistemaFolder.add( objetoSistema, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).onChange( (value) => { sistema.setSobrecarga(value); } )
+	sistemaFolder.open()
+	
 	processosFolder = gui.addFolder('Processos');
-	var processos = {Quantum: 0, Sobrecarga: 0, 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso};
-
-	controllerQuantumSistema = processosFolder.add( processos, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
-	controllerQuantumSistema.onChange((value) => {
-		setQuantum(value);
-	})
-	controllerSobreCargaSistema = processosFolder.add( processos, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
-	controllerSobreCargaSistema.onChange((value) => {
-		setSobrecarga(value);
-	})
-
+	var processos = {'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso};
 	controllerProcessosAddProcesso = processosFolder.add(processos, 'Adiciona Processo');
 	controllerProcessosRemoveProcesso = processosFolder.add(processos, 'Remove Processo');
-	
 	processosFolder.open()
 	
-	var algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
+	algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
 	var entradaVazia = {Algoritmo: ''};
 	const algoritmosDeEscalonamento = [ 'FIFO', 'Round-Robin', 'EDF', 'SJF'];
 	const controllerAlgoritmosEscalonamento = algoritmosFolder.add( entradaVazia, 'Algoritmo' ).options( algoritmosDeEscalonamento )
 	algoritmosFolder.open()
 
-	controllerAlgoritmosEscalonamento.onChange(() => {
-		if(controllerAlgoritmosEscalonamento.object.algoritmo == "FIFO") {
+	controllerAlgoritmosEscalonamento.onChange((value) => {
+		if(value == "FIFO") {
 			console.log("FIFO")
 		}
-		if(controllerAlgoritmosEscalonamento.object.algoritmo == "Round-Robin") {
-			console.log("RR")
+		if(value == "Round-Robin") {
+			console.log("Round-Robin")
 		}
-		if(controllerAlgoritmosEscalonamento.object.algoritmo == "EDF") {
+		if(value == "EDF") {
 			console.log("EDF")
 		}
-		if(controllerAlgoritmosEscalonamento.object.algoritmo == "SJF") {
+		if(value == "SJF") {
 			console.log("SJF")
 		}
 	})
 
 	
-	var iniciarProcessosFolder = gui.addFolder('Iniciar');
+	iniciarProcessosFolder = gui.addFolder('Iniciar');
 	var iniciarProcessos = {Run: iniciar};
 	const controllerIniciarProcessos = iniciarProcessosFolder.add( iniciarProcessos, 'Run' )
 	iniciarProcessosFolder.open()
 
-
     const element = document.getElementById('canvas-three')
-	
 	const width = 900;
 	const height = 500;
 
@@ -94,26 +126,42 @@ function addProcesso() {
 		listaDeProcessos.push(processosFolder.__folders['Processo '+quantidadeDeProcessos]);
 		var processoVariaveis = {'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0}
 		
-		processoCorrenteController.add( processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
-		processoCorrenteController.add( processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
-		processoCorrenteController.add( processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
 		
+		var controllerTempoDeChegada = processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+		var controllerTempoDeExecucao = processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+		var controllerDeadline = processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1);
+		
+		controllers.push(controllerTempoDeChegada)
+
+		const processoCorrente = new ProcessoInput()
+
+		changeTempoDeChegada(controllerTempoDeChegada, processoCorrente)
+		changeTempoDeExecucao(controllerTempoDeExecucao, processoCorrente)
+		changeDeadline(controllerDeadline, processoCorrente)
+		
+		processoEntradaSistema.push(processoCorrente)
 
 		quantidadeDeProcessos++;
 	})
 }
 
-function setQuantum(value) {
-	quantum = value;
+// Faz a mudança no atributo de tempo de chegada do objeto que captura os dados do processo
+function changeTempoDeChegada(controllerTempoDeChegada, processoCorrente) {
+	controllerTempoDeChegada.onChange((value) => {
+		processoCorrente.setTempoDeChegada(value)
+	})
 }
-
-function setSobrecarga(value) {
-	sobrecarga = value;
+// Faz a mudança no atributo de tempo de execucao do objeto que captura os dados do processo
+function changeTempoDeExecucao(controllerTempoDeExecucao, processoCorrente) {
+	controllerTempoDeExecucao.onChange((value) => {
+		processoCorrente.setTempoDeExecucao(value)
+	})
 }
-
-
-function iniciar() {
-	render()
+// Faz a mudança no atributo de deadline do objeto que captura os dados do processo
+function changeDeadline(controllerDeadline, processoCorrente) {
+	controllerDeadline.onChange((value) => {
+		processoCorrente.setDeadline(value)
+	})
 }
 
 function removeProcesso() {
@@ -127,7 +175,22 @@ function removeProcesso() {
 	})
 }
 
+function setQuantum(value) {
+	quantum = value;
+}
+
+function setSobrecarga(value) {
+	sobrecarga = value;
+}
+
+function iniciar() {
+	render()
+}
+
+
 function render() {
+	console.log(sistema)
+	console.log(processoEntradaSistema)
 	renderer.render(scene, camera);
 }
 
