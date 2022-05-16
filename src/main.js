@@ -1,16 +1,14 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
-import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js'
+import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js';
 
-const gui = new GUI({ name: "Escalonamento" })
-gui.width = 600
+const gui = new GUI({ name: "Escalonamento", width: 500 })
 
 var scene, renderer, camera, axesHelper;
 
 /* Pastas do GUI */
 var sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
 
-var controllerProcessosAddProcesso, controllerProcessosRemoveProcesso;
-var quantidadeDeProcessos = 1;
+var quantidadeDeProcessos = 0;
 
 const LIMITE_SUPERIOR = 100;
 const LIMITE_INFERIOR = 0;
@@ -37,7 +35,7 @@ var sistema = new SistemaInput();
 
 /* Classe que guarda as variáveis obtidas através dos controllers, para os processos */
 class ProcessoInput {
-    constructor(tempoDeChegada, tempoDeExecucao, deadline) {
+    constructor(tempoDeChegada = 0, tempoDeExecucao = 0, deadline = 0) {
         this.tempoDeChegada = tempoDeChegada;
         this.tempoDeExecucao = tempoDeExecucao;
         this.deadline = deadline;
@@ -67,8 +65,8 @@ function controlFolderSistema() {
 function controlFolderProcessos() {
     processosFolder = gui.addFolder('Processos');
     var processos = { 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso };
-    controllerProcessosAddProcesso = processosFolder.add(processos, 'Adiciona Processo');
-    controllerProcessosRemoveProcesso = processosFolder.add(processos, 'Remove Processo');
+    processosFolder.add(processos, 'Adiciona Processo').onChange();
+    processosFolder.add(processos, 'Remove Processo').onChange();
     processosFolder.open()
 }
 
@@ -76,7 +74,8 @@ function controlAlgoritmosFolder() {
     algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
     var entradaVazia = { Algoritmo: '' };
     const algoritmosDeEscalonamento = ['FIFO', 'Round-Robin', 'EDF', 'SJF'];
-    algoritmosFolder.add(entradaVazia, 'Algoritmo').options(algoritmosDeEscalonamento).onChange((value) => executaAlgoritmoDeEscalonamento(value))
+    algoritmosFolder.add(entradaVazia, 'Algoritmo').options(algoritmosDeEscalonamento)
+        .onChange((value) => executaAlgoritmoDeEscalonamento(value, listaDeProcessos))
     algoritmosFolder.open()
 }
 
@@ -115,44 +114,26 @@ function init() {
 };
 
 function addProcesso() {
-    controllerProcessosAddProcesso.onChange(() => {
-        var processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
-        var processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
-        const processoCorrente = new ProcessoInput()
-        processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-            .onChange((value) => { changeTempoDeChegada(value, processoCorrente) });
-        processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-            .onChange((value) => { changeTempoDeExecucao(value, processoCorrente) });
-        processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-            .onChange((value) => { changeDeadline(value, processoCorrente) });
-        listaDeProcessos.push(processoCorrente)
-        quantidadeDeProcessos++;
-    })
-}
-
-// Faz a mudança no atributo de tempo de chegada do objeto que captura os dados do processo
-function changeTempoDeChegada(value, processoCorrente) {
-    processoCorrente.setTempoDeChegada(value)
-}
-
-// Faz a mudança no atributo de tempo de execucao do objeto que captura os dados do processo
-function changeTempoDeExecucao(value, processoCorrente) {
-    processoCorrente.setTempoDeExecucao(value)
-}
-
-// Faz a mudança no atributo de deadline do objeto que captura os dados do processo
-function changeDeadline(value, processoCorrente) {
-    processoCorrente.setDeadline(value)
+    quantidadeDeProcessos++;
+    var processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
+    var processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
+    const processoCorrente = new ProcessoInput()
+    processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
+        .onChange((value) => { processoCorrente.setTempoDeChegada(value) });
+    processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
+        .onChange((value) => { processoCorrente.setTempoDeExecucao(value) });
+    processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
+        .onChange((value) => { processoCorrente.setDeadline(value) });
+    listaDeProcessos.push(processoCorrente)
 }
 
 function removeProcesso() {
-    controllerProcessosRemoveProcesso.onChange(() => {
-        if ((quantidadeDeProcessos - 1) >= 1) {
-            processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo ' + (quantidadeDeProcessos - 1)])
-            listaDeProcessos.pop()
-            quantidadeDeProcessos--;
-        }
-    })
+    console.log(quantidadeDeProcessos)
+    if (quantidadeDeProcessos > 0) {
+        processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo ' + quantidadeDeProcessos])
+        listaDeProcessos.pop()
+        quantidadeDeProcessos--;
+    }
 }
 
 function executaAlgoritmoDeEscalonamento(value) {
@@ -175,9 +156,10 @@ function iniciar() {
 }
 
 function render() {
-    console.log(sistema)
-    console.log(listaDeProcessos)
-    renderer.render(scene, camera);
+    if (listaDeProcessos.length > 0) {
+        console.log(listaDeProcessos)
+        renderer.render(scene, camera);
+    }
 }
 
 init();

@@ -1,4 +1,3 @@
-
 * {
     margin: 0;
 }
@@ -26,12 +25,12 @@ h4 {
     color: #FFF;
     text-align: end;
     padding-top: 20PX;
+    padding-right: 10px;
 }
 
 #body-content {
     min-height: 90%;
     background-color: #371F39;
-
     display: flex;
     flex-direction: column;
     justify-content: center;
