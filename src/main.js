@@ -1,19 +1,18 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js';
 
-const gui = new GUI({ name: "Escalonamento", width: 500 })
-
-var scene, renderer, camera, axesHelper;
-
-/* Pastas do GUI */
-var sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
-
-var quantidadeDeProcessos = 0;
-
 const LIMITE_SUPERIOR = 100;
 const LIMITE_INFERIOR = 0;
 
-var listaDeProcessos = [];
+const gui = new GUI({ name: "Escalonamento", width: 500 })
+
+let scene, renderer, camera, axesHelper;
+
+/* Pastas do GUI */
+let sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
+
+const listaDeProcessos = [];
+let quantidadeDeProcessos = 0;
 
 /* Estrutura para guardar o quantum e a sobrecarga do sistema */
 class SistemaInput {
@@ -31,7 +30,7 @@ class SistemaInput {
     }
 }
 
-var sistema = new SistemaInput();
+const sistema = new SistemaInput();
 
 /* Classe que guarda as variáveis obtidas através dos controllers, para os processos */
 class ProcessoInput {
@@ -56,7 +55,7 @@ class ProcessoInput {
 
 function controlFolderSistema() {
     sistemaFolder = gui.addFolder('Sistema');
-    var objetoSistema = { Quantum: 0, Sobrecarga: 0 }
+    let objetoSistema = { Quantum: 0, Sobrecarga: 0 }
     sistemaFolder.add(objetoSistema, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).onChange((value) => { sistema.setQuantum(value); })
     sistemaFolder.add(objetoSistema, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).onChange((value) => { sistema.setSobrecarga(value); })
     sistemaFolder.open()
@@ -64,7 +63,7 @@ function controlFolderSistema() {
 
 function controlFolderProcessos() {
     processosFolder = gui.addFolder('Processos');
-    var processos = { 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso };
+    let processos = { 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso };
     processosFolder.add(processos, 'Adiciona Processo').onChange();
     processosFolder.add(processos, 'Remove Processo').onChange();
     processosFolder.open()
@@ -72,7 +71,7 @@ function controlFolderProcessos() {
 
 function controlAlgoritmosFolder() {
     algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
-    var entradaVazia = { Algoritmo: '' };
+    let entradaVazia = { Algoritmo: '' };
     const algoritmosDeEscalonamento = ['FIFO', 'Round-Robin', 'EDF', 'SJF'];
     algoritmosFolder.add(entradaVazia, 'Algoritmo').options(algoritmosDeEscalonamento)
         .onChange((value) => executaAlgoritmoDeEscalonamento(value, listaDeProcessos))
@@ -81,7 +80,7 @@ function controlAlgoritmosFolder() {
 
 function controlIniciarFolder() {
     iniciarProcessosFolder = gui.addFolder('Iniciar');
-    var iniciarProcessos = { Run: iniciar };
+    let iniciarProcessos = { Run: iniciar };
     iniciarProcessosFolder.add(iniciarProcessos, 'Run')
     iniciarProcessosFolder.open()
 }
@@ -115,8 +114,8 @@ function init() {
 
 function addProcesso() {
     quantidadeDeProcessos++;
-    var processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
-    var processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
+    let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
+    let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
     const processoCorrente = new ProcessoInput()
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value) });
@@ -137,17 +136,22 @@ function removeProcesso() {
 }
 
 function executaAlgoritmoDeEscalonamento(value) {
-    if (value == "FIFO") {
-        console.log("FIFO")
-    }
-    if (value == "Round-Robin") {
-        console.log("Round-Robin")
-    }
-    if (value == "EDF") {
-        console.log("EDF")
-    }
-    if (value == "SJF") {
-        console.log("SJF")
+    switch (value) {
+        case "FIFO":
+            console.log("FIFO")
+            break;
+        case "Round-Robin":
+            console.log("Round-Robin")
+            break;
+        case "EDF":
+            console.log("EDF")
+            break;
+        case "SJF":
+            console.log("SJF")
+            break;
+        default:
+            alert("Erro, escolha um algoritmo de escalonamento válido");
+            break;
     }
 }
 
@@ -158,6 +162,13 @@ function iniciar() {
 function render() {
     if (listaDeProcessos.length > 0) {
         console.log(listaDeProcessos)
+        console.log(sistema)
+
+        const geometry = new THREE.PlaneGeometry(20, 20);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
+        const plane = new THREE.Mesh(geometry, material);
+        scene.add(plane);
+
         renderer.render(scene, camera);
     }
 }
