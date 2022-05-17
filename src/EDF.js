@@ -17,6 +17,7 @@ class Processo {
 		this.burstTime = burstTime;
 		this.burstTimeNow = burstTime;
 		this.deadlineOverflow = false;
+		this.deadlineOverflowQuant = -1;
 		this.waitingTime = 0;
 		this.turnAround = 0;
 	}
@@ -121,10 +122,9 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 	}
 }
 
-// Function to calculate turn around time
+// Função para calcular TAT e faz o teste de estouro de deadline
 const findTurnAroundTime = (processes, n) => {
-	// calculating turnaround time by adding
-	// bt[i] + wt[i]
+
 	for (let i = 0; i < n; i++) {
 		if (processes) {
 			processes[i].turnAround = processes[i].burstTime + processes[i].waitingTime - processes[i].timeStart;
@@ -132,22 +132,39 @@ const findTurnAroundTime = (processes, n) => {
 	}
 }
 
-// Function to calculate average time
+// Função para fazer o teste de estouro de deadline e calcular esse estouro
+const deadlineOverFlow = (processes, n) => {
+	
+	for (let i = 0; i < n; i++) {
+		if (processes) {
+			if(processes[i].turnAround > processes[i].deadline){
+				processes[i].deadlineOverflow = true;
+				if(processes[i].deadlineOverflow){
+					processes[i].deadlineOverflowQuant = processes[i].turnAround - processes[i].deadline;
+				}
+			}
+		}
+	}
+}
+
+// Função para calcular o tempo médio
 const findavgTime = (processes, n, quantum) => {
 	let total_wt = 0, total_tat = 0;
 
-	// Function to find waiting time of all processes
+	// Função para encontrar o tempo de espera de todos os processos
 	findWaitingTime(processes, n, quantum, over);
 
-	// Function to find turn around time for all processes
+	// Função para encontrar o TAT de todos os processos
 	findTurnAroundTime(processes, n);
+
+	// Função para fazer o teste de estouro de deadline e calcular esse estouro
+	deadlineOverFlow (processes, n);
 
 	// Display processes along with all details
 	//document.write(`Processes Burst time Waiting time Turn around time<br/>`);
 	console.log(`Processes/Burst time/Waiting time/Turn around time`);
 
-	// Calculate total waiting time and total turn
-	// around time
+	// Calcula o tempo total de espera e o TAT total 
 	for (let i = 0; i < n; i++) {
 		if (processes) {
 			total_wt = total_wt + processes[i].waitingTime;
@@ -167,9 +184,9 @@ const findavgTime = (processes, n, quantum) => {
 
 function main() {
 	over = 1;
-	// Time quantum
+	
 	let quantum = 2;
-	// findavgTime(processes, n, burst_time, quantum, over, timeStart);
+	
 
 	var teste = new Processo(1, 0, 10, 4);
 	var teste2 = new Processo(2, 2, 8, 6);
