@@ -71,7 +71,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 			if (vetorPrincipal[0].burstTimeNow > 0) {
 
 				//Se o tempo de execução restante for maior que o quantum
-				if (vetorPrincipal[0].burstTimeNow > quantum) { 
+				if (vetorPrincipal[0].burstTimeNow > quantum) {
 
 					t += quantum; //Adiciona um quantum no tempo
 					t += overload; //Adiciona uma sobrecarga
@@ -109,7 +109,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 					}
 					//Se o vetor principal ficou vazio após a execução
 					//E todos os processos na cópia estão como 0, finaliza o loop
-					if (acabouProcesso(n)) {
+					if (vetorPrincipal.length == 0 && acabouProcesso(n)) {
 						break;
 					}
 				}
@@ -121,10 +121,10 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 	}
 }
 
-function acabouProcesso(n){
+function acabouProcesso(n) {
 	var acabou = true;
-	for (let i=0;i<n;i++){
-		if(vetorCopiaProcessos[i] != 0){
+	for (let i = 0; i < n; i++) {
+		if (vetorCopiaProcessos[i] != 0) {
 			acabou = false;
 		}
 	}
@@ -143,12 +143,12 @@ const findTurnAroundTime = (processes, n) => {
 
 // Função para fazer o teste de estouro de deadline e calcular esse estouro
 const deadlineOverFlow = (processes, n) => {
-	
+
 	for (let i = 0; i < n; i++) {
 		if (processes) {
-			if(processes[i].turnAround > processes[i].deadline){
+			if (processes[i].turnAround > processes[i].deadline) {
 				processes[i].deadlineOverflow = true;
-				if(processes[i].deadlineOverflow){
+				if (processes[i].deadlineOverflow) {
 					processes[i].deadlineOverflowQuant = processes[i].turnAround - processes[i].deadline;
 				}
 			}
@@ -167,7 +167,7 @@ const findavgTime = (processes, n, quantum) => {
 	findTurnAroundTime(processes, n);
 
 	// Função para fazer o teste de estouro de deadline e calcular esse estouro
-	deadlineOverFlow (processes, n);
+	deadlineOverFlow(processes, n);
 
 	// Display processes along with all details
 	//document.write(`Processes Burst time Waiting time Turn around time<br/>`);
@@ -193,9 +193,9 @@ const findavgTime = (processes, n, quantum) => {
 
 function main() {
 	over = 1;
-	
+
 	let quantum = 2;
-	
+
 
 	var teste = new Processo(1, 0, 10, 4);
 	var teste2 = new Processo(2, 2, 8, 6);
