@@ -41,6 +41,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 		return 0;
 	});
 
+	//Controla o quantum para passagem ao processo seguinte
 	var contador = 0;
 	//Loop de execução
 	while (1) {
@@ -77,6 +78,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 					t += ciclo; //Adiciona um ciclo no tempo
 					contador++;
 
+					//Se o quantum tiver sido atingido
 					if (contador == quantum) {
 						t += overload; //Adiciona uma sobrecarga
 						contador = 0;
