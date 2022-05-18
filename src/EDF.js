@@ -109,7 +109,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 					}
 					//Se o vetor principal ficou vazio após a execução
 					//E todos os processos na cópia estão como 0, finaliza o loop
-					if (vetorPrincipal.length == 0 && acabouProcesso(n)) {
+					if (acabouProcesso(n)) {
 						break;
 					}
 				}
@@ -122,10 +122,10 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 }
 
 function acabouProcesso(n){
-	var acabou = false;
+	var acabou = true;
 	for (let i=0;i<n;i++){
 		if(vetorCopiaProcessos[i] != 0){
-			acabou = true;
+			acabou = false;
 		}
 	}
 	return acabou;
