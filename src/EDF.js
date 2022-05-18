@@ -109,8 +109,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 					}
 					//Se o vetor principal ficou vazio após a execução
 					//E todos os processos na cópia estão como 0, finaliza o loop
-					//TODO if todos os elementos da cópia são iguais a zero
-					if (vetorPrincipal.length == 0) {
+					if (vetorPrincipal.length == 0 && acabouProcesso(n)) {
 						break;
 					}
 				}
@@ -120,6 +119,16 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 			}
 		}
 	}
+}
+
+function acabouProcesso(n){
+	var acabou = false;
+	for (let i=0;i<n;i++){
+		if(vetorCopiaProcessos[i] != 0){
+			acabou = true;
+		}
+	}
+	return acabou;
 }
 
 // Função para calcular TAT e faz o teste de estouro de deadline
