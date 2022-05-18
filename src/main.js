@@ -104,7 +104,8 @@ function init() {
 
     scene = new THREE.Scene();
 
-    camera = new THREE.OrthographicCamera(width / -100, width / 2, height / 2, height / -50, width / height, 0);
+    // camera = new THREE.OrthographicCamera(width / -100, width / 2, height / 2, height / -50, width / height, 0);
+    camera = new THREE.OrthographicCamera(-width, width, height, -height, width / height, 0);
     scene.add(camera);
 
     axesHelper = new THREE.AxesHelper(10000);
@@ -155,6 +156,37 @@ function executaAlgoritmoDeEscalonamento(value) {
     }
 }
 
+function desenharRetangulo() {
+    const index = []
+    const vector1 = new THREE.Vector3(0, 0, 0);
+    const vector2 = new THREE.Vector3(50, 0, 0);
+    // const vector3 = new THREE.Vector2(100, 0);
+    // const vector4 = new THREE.Vector2(100, 100);
+    // index.push(vector1)
+    // index.push(vector2)
+    // index.push(vector3)
+    // index.push(vector4)
+
+
+    const arrayPoints = [];
+    // arrayPoints.push(vector1.x, vector1.y);
+    // arrayPoints.push(vector2.x, vector2.y);
+    // arrayPoints.push(vector3.x, vector3.y, vector3.z);
+    // arrayPoints.push(vector4.x, vector4.y, vector4.z);
+
+    arrayPoints.push(vector1)
+    arrayPoints.push(vector2)
+
+    const geometry = new THREE.PlaneBufferGeometry(10, 20);
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+
+    geometry.setFromPoints(arrayPoints);
+
+    const rect = new THREE.Mesh(geometry, material);
+
+    scene.add(rect);
+}
+
 function iniciar() {
     render()
 }
@@ -167,8 +199,8 @@ function render() {
         const geometry = new THREE.PlaneGeometry(20, 20);
         const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
         const plane = new THREE.Mesh(geometry, material);
-        scene.add(plane);
-
+        // scene.add(plane);
+        desenharRetangulo();
         renderer.render(scene, camera);
     }
 }
