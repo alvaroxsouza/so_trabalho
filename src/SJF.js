@@ -136,27 +136,12 @@ function acabouProcesso(n) {
 	return acabou;
 }
 
-// Função para calcular TAT e faz o teste de estouro de deadline
+// Função para calcular TAT 
 const findTurnAroundTime = (processes, n) => {
 
 	for (let i = 0; i < n; i++) {
 		if (processes) {
 			processes[i].turnAround = processes[i].burstTime + processes[i].waitingTime - processes[i].timeStart;
-		}
-	}
-}
-
-// Função para fazer o teste de estouro de deadline e calcular esse estouro
-const deadlineOverFlow = (processes, n) => {
-
-	for (let i = 0; i < n; i++) {
-		if (processes) {
-			if (processes[i].turnAround > processes[i].deadline) {
-				processes[i].deadlineOverflow = true;
-				if (processes[i].deadlineOverflow) {
-					processes[i].deadlineOverflowQuant = processes[i].turnAround - processes[i].deadline;
-				}
-			}
 		}
 	}
 }
@@ -170,9 +155,6 @@ const findavgTime = (processes, n, quantum) => {
 
 	// Função para encontrar o TAT de todos os processos
 	findTurnAroundTime(processes, n);
-
-	// Função para fazer o teste de estouro de deadline e calcular esse estouro
-	deadlineOverFlow(processes, n);
 
 	// Display processes along with all details
 	//document.write(`Processes Burst time Waiting time Turn around time<br/>`);
