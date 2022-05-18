@@ -41,6 +41,7 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 		return 0;
 	});
 
+	var contador = 0;
 	//Loop de execução
 	while (1) {
 		vetorAuxiliar = [];
@@ -70,22 +71,27 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 		if (vetorPrincipal && vetorPrincipal.length > 0) {
 			if (vetorPrincipal[0].burstTimeNow > 0) {
 
-				//Se o tempo de execução restante for maior que o quantum
-				if (vetorPrincipal[0].burstTimeNow > quantum) {
+				//Se o tempo de execução restante for maior que o ciclo
+				if (vetorPrincipal[0].burstTimeNow > ciclo) {
 
-					t += quantum; //Adiciona um quantum no tempo
-					t += overload; //Adiciona uma sobrecarga
+					t += ciclo; //Adiciona um ciclo no tempo
+					contador++;
 
-					// Diminui do tempo de execução restante o valor do quantum
-					vetorPrincipal[0].burstTimeNow -= quantum;
+					if (contador == quantum) {
+						t += overload; //Adiciona uma sobrecarga
+						contador = 0;
+					}
+
+					// Diminui do tempo de execução restante o valor do ciclo
+					vetorPrincipal[0].burstTimeNow -= ciclo;
 				}
 
-				//Se o tempo de execução restante for menor ou igual ao quantum
+				//Se o tempo de execução restante for menor ou igual ao ciclo
 				//o último ciclo desse processo será executado
 				else {
 					//Aumenta o valor do tempo pelo tempo de execução que falta no processo
 					t = t + vetorPrincipal[0].burstTimeNow;
-
+					contador = 0;
 					//Define o tempo de espera do processo como o tempo atual menos o tempo de execução
 					if (processes) {
 						for (let i = 0; i < n; i++) {
@@ -109,8 +115,11 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 					}
 					//Se o vetor principal ficou vazio após a execução
 					//E todos os processos na cópia estão como 0, finaliza o loop
-					if (vetorPrincipal.length == 0 && acabouProcesso(n)) {
-						break;
+					//TODO if todos os elementos da cópia são iguais a zero
+					if (vetorPrincipal.length == 0) {
+						if (acabouProcesso(n)) {
+							break;
+						}
 					}
 				}
 			}
@@ -118,20 +127,26 @@ const findWaitingTime = (processes, n, quantum, overload) => {
 				t++;
 			}
 		}
+		else {
+			t++;
+		}
 	}
 }
 
+//Condição de parada
 function acabouProcesso(n) {
 	var acabou = true;
+
 	for (let i = 0; i < n; i++) {
 		if (vetorCopiaProcessos[i] != 0) {
 			acabou = false;
 		}
 	}
+
 	return acabou;
 }
 
-// Função para calcular TAT e faz o teste de estouro de deadline
+// Função para calcular TAT 
 const findTurnAroundTime = (processes, n) => {
 
 	for (let i = 0; i < n; i++) {
@@ -157,11 +172,11 @@ const deadlineOverFlow = (processes, n) => {
 }
 
 // Função para calcular o tempo médio
-const findavgTime = (processes, n, quantum) => {
+const findavgTime = (processes, n, quantum, ciclo) => {
 	let total_wt = 0, total_tat = 0;
 
 	// Função para encontrar o tempo de espera de todos os processos
-	findWaitingTime(processes, n, quantum, over);
+	findWaitingTime(processes, n, quantum, over, ciclo);
 
 	// Função para encontrar o TAT de todos os processos
 	findTurnAroundTime(processes, n);
@@ -193,6 +208,7 @@ const findavgTime = (processes, n, quantum) => {
 
 function main() {
 	over = 1;
+	ciclo = 1;
 
 	let quantum = 2;
 
@@ -209,7 +225,7 @@ function main() {
 	processes[2] = teste3;
 
 
-	findavgTime(processes, n, quantum);
+	findavgTime(processes, n, quantum, ciclo);
 }
 
 main();
