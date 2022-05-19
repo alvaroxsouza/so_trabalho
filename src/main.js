@@ -7,6 +7,7 @@ const LIMITE_INFERIOR = 0;
 const gui = new GUI({ name: "Escalonamento", width: 500 })
 
 let scene, renderer, camera, axesHelper;
+var speedAnimation = 0.001;
 
 /* Pastas do GUI */
 let sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
@@ -80,8 +81,10 @@ function controlAlgoritmosFolder() {
 
 function controlIniciarFolder() {
     iniciarProcessosFolder = gui.addFolder('Iniciar');
-    let iniciarProcessos = { Run: iniciar };
+    let iniciarProcessos = { Run: iniciar, 'Velocidade da animação': 0 };
     iniciarProcessosFolder.add(iniciarProcessos, 'Run')
+    iniciarProcessosFolder.add(iniciarProcessos, 'Velocidade da animação', 0.0001, 0.001, 0.000001)
+        .onChange((value) => { speedAnimation += value })
     iniciarProcessosFolder.open()
 }
 
@@ -105,7 +108,7 @@ function init() {
     scene = new THREE.Scene();
 
     // camera = new THREE.OrthographicCamera(width / -100, width / 2, height / 2, height / -50, width / height, 0);
-    camera = new THREE.OrthographicCamera(-width, width, height, -height, width / height, 0);
+    camera = new THREE.OrthographicCamera(-50, 50, 50, -50, 50 / 50, 0);
     scene.add(camera);
 
     axesHelper = new THREE.AxesHelper(10000);
@@ -155,36 +158,58 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
     }
 }
+var speed = 0;
 
-function desenharRetangulo() {
-    const index = []
-    const vector1 = new THREE.Vector3(0, 0, 0);
-    const vector2 = new THREE.Vector3(50, 0, 0);
-    // const vector3 = new THREE.Vector2(100, 0);
-    // const vector4 = new THREE.Vector2(100, 100);
-    // index.push(vector1)
-    // index.push(vector2)
-    // index.push(vector3)
-    // index.push(vector4)
+function desenhaExecucaoDeProcesso() {
+    speed += speedAnimation;
+    const verticesTriangulo = []
+    verticesTriangulo.push(0.0, 0.0, 0.0)
+    verticesTriangulo.push(speed, 0.0, 0.0)
+    verticesTriangulo.push(speed, 10.0, 0.0)
 
+    verticesTriangulo.push(speed, 10.0, 0.0)
+    verticesTriangulo.push(0.0, 10.0, 0.0)
+    verticesTriangulo.push(0.0, 0.0, 0.0)
 
-    const arrayPoints = [];
-    // arrayPoints.push(vector1.x, vector1.y);
-    // arrayPoints.push(vector2.x, vector2.y);
-    // arrayPoints.push(vector3.x, vector3.y, vector3.z);
-    // arrayPoints.push(vector4.x, vector4.y, vector4.z);
+    const geometry = new THREE.BufferGeometry()
 
-    arrayPoints.push(vector1)
-    arrayPoints.push(vector2)
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
 
-    const geometry = new THREE.PlaneBufferGeometry(10, 20);
-    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: false
+    });
+    const triangulo = new THREE.Mesh(geometry, material);
 
-    geometry.setFromPoints(arrayPoints);
+    triangulo.translateX(0.0)
+    triangulo.translateY(0.0)
+    scene.add(triangulo);
+}
 
-    const rect = new THREE.Mesh(geometry, material);
+function desenhaProcesso() {
+    speed += speedAnimation;
+    const verticesTriangulo = []
+    verticesTriangulo.push(10 + 0.0, 10.0, 0.0)
+    verticesTriangulo.push(10 + speed, 10.0, 0.0)
+    verticesTriangulo.push(10 + speed, 20.0, 0.0)
 
-    scene.add(rect);
+    verticesTriangulo.push(10 + speed, 20.0, 0.0)
+    verticesTriangulo.push(10 + 0.0, 20.0, 0.0)
+    verticesTriangulo.push(10 + 0.0, 10.0, 0.0)
+
+    const geometry = new THREE.BufferGeometry()
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
+
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: false
+    });
+    const triangulo = new THREE.Mesh(geometry, material);
+
+    /* triangulo.translateX(10.0)
+    triangulo.translateY(10.0) */
+    scene.add(triangulo);
 }
 
 function iniciar() {
@@ -192,17 +217,11 @@ function iniciar() {
 }
 
 function render() {
-    if (listaDeProcessos.length > 0) {
-        console.log(listaDeProcessos)
-        console.log(sistema)
-
-        const geometry = new THREE.PlaneGeometry(20, 20);
-        const material = new THREE.MeshBasicMaterial({ color: 0xffff00, side: THREE.DoubleSide });
-        const plane = new THREE.Mesh(geometry, material);
-        // scene.add(plane);
-        desenharRetangulo();
-        renderer.render(scene, camera);
-    }
+    requestAnimationFrame(render);
+    desenhaExecucaoDeProcesso();
+    desenhaProcesso();
+    renderer.render(scene, camera);
+    desenhaExecucaoDeProcesso();
 }
 
 init();
