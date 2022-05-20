@@ -1,3 +1,13 @@
+ /*
+ O algoritmo funciona da seguinte forma:
+ Se já há referência para a pagina buscada : coloca "NF"(Não Falta) no indice correspondente
+ na lista de faltas, no momento em que não ocorreu a falta.
+ Se não há referência para a página buscada: coloca "F" (Falta) no indice correspondente
+ na lista de faltas, no momento em que ocorreu a falta - Se há espaço livre na memória, a página 
+ é adicionada. Se não há espaço livre na memória, retira da memória a primeira página referenciada
+ e adiciona a nova página no lugar.
+  */
+
  function firstInFirstOut(referenceString, frameNumber) {
     let pageInMem = []; //Lista de páginas que estão na memória
     let pageFaults = []; //Lista de faltas 
@@ -6,11 +16,11 @@
     let pageNotInMemArray = []; //vetor da lista de páginas que não estão na memória
     
     for (let i = 0; i < referenceString.length; i++) {
-            //Já a referência para a pagina buscada: não há falta de página
+            //Já há referência para a página buscada: não há falta de página
             if (pageInMem.includes(referenceString[i])) {
                 pageFaults.push('NF');
             } else {
-                //Não a referência para a pagina buscada:há falta de página
+                //Não há referência para a pagina buscada:há falta de página
                 pageFaults.push('F');
                 //Se há espaço livre na memória
                 if (pageInMem.length < frameNumber) {
@@ -32,16 +42,17 @@
         pageNotInMemArray.push([...pageNotInMem]); //Joga o vetor de paginas que não estão dentro da memória dentro de um outro vetor
     }
     
-    //Retorna todos os vetores
+    
     console.log(pageFaults)
     console.log(pageInMemArray)
     console.log(pageNotInMemArray)
     
+    //Retorna todos os vetores
     return {pageInMemArray, pageFaults, pageNotInMemArray};
 }
 
 function main() {
-	let frameNumber = 3;
+	let frameNumber = 4;
     let referenceString = "70120304230321201701" 
     firstInFirstOut(referenceString, frameNumber);  
 }
