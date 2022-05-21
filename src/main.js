@@ -6,8 +6,13 @@ const LIMITE_INFERIOR = 0;
 
 const gui = new GUI({ name: "Escalonamento", width: 500 })
 
-let scene, renderer, camera, axesHelper;
+/* Configurações da renderização */
+let scene, renderer, camera, axesHelper, escala;
 var speedAnimation = 0.001;
+let speed = 0.0;
+
+const ESPAÇO_ESQUERDA = -40;
+const ESPAÇO_BAIXO = -40;
 
 /* Pastas do GUI */
 let sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
@@ -57,8 +62,10 @@ class ProcessoInput {
 function controlFolderSistema() {
     sistemaFolder = gui.addFolder('Sistema');
     let objetoSistema = { Quantum: 0, Sobrecarga: 0 }
-    sistemaFolder.add(objetoSistema, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).onChange((value) => { sistema.setQuantum(value); })
-    sistemaFolder.add(objetoSistema, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1).onChange((value) => { sistema.setSobrecarga(value); })
+    sistemaFolder.add(objetoSistema, 'Quantum', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
+        .onChange((value) => { sistema.setQuantum(value); })
+    sistemaFolder.add(objetoSistema, 'Sobrecarga', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
+        .onChange((value) => { sistema.setSobrecarga(value); })
     sistemaFolder.open()
 }
 
@@ -81,8 +88,9 @@ function controlAlgoritmosFolder() {
 
 function controlIniciarFolder() {
     iniciarProcessosFolder = gui.addFolder('Iniciar');
-    let iniciarProcessos = { Run: iniciar, 'Velocidade da animação': 0 };
-    iniciarProcessosFolder.add(iniciarProcessos, 'Run')
+    let iniciarProcessos = { Inicia: iniciar, 'Reinicia': reiniciarCena, 'Velocidade da animação': 0 };
+    iniciarProcessosFolder.add(iniciarProcessos, 'Inicia')
+    iniciarProcessosFolder.add(iniciarProcessos, 'Reinicia')
     iniciarProcessosFolder.add(iniciarProcessos, 'Velocidade da animação', 0.0001, 0.001, 0.000001)
         .onChange((value) => { speedAnimation += value })
     iniciarProcessosFolder.open()
@@ -91,24 +99,25 @@ function controlIniciarFolder() {
 function init() {
     renderer = new THREE.WebGLRenderer();
     renderer.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
+    const element = document.getElementById('canvas-three')
+    element.appendChild(renderer.domElement);
 
     controlFolderSistema();
     controlFolderProcessos();
     controlAlgoritmosFolder();
     controlIniciarFolder();
 
-    const element = document.getElementById('canvas-three')
+
+    scene = new THREE.Scene();
+
     const width = 900;
     const height = 500;
 
     renderer.setSize(width, height);
 
-    element.appendChild(renderer.domElement);
-
-    scene = new THREE.Scene();
-
     // camera = new THREE.OrthographicCamera(width / -100, width / 2, height / 2, height / -50, width / height, 0);
-    camera = new THREE.OrthographicCamera(-50, 50, 50, -50, 50 / 50, 0);
+    camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO,
+        width / height, 0);
     scene.add(camera);
 
     axesHelper = new THREE.AxesHelper(10000);
@@ -158,70 +167,64 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
     }
 }
-var speed = 0;
 
-function desenhaExecucaoDeProcesso() {
+function desenhaExecucaoDeProcesso(numeroDoProcesso = 2, tempoInicial = 10, tempoFinal = 10) {
     speed += speedAnimation;
-    const verticesTriangulo = []
-    verticesTriangulo.push(0.0, 0.0, 0.0)
-    verticesTriangulo.push(speed, 0.0, 0.0)
-    verticesTriangulo.push(speed, 10.0, 0.0)
+    if (speed <= tempoFinal) {
+        const tamanhoDoRetangulo = 10;
+        const quantidadeDeAlturaDosRetangulos = 10;
 
-    verticesTriangulo.push(speed, 10.0, 0.0)
-    verticesTriangulo.push(0.0, 10.0, 0.0)
-    verticesTriangulo.push(0.0, 0.0, 0.0)
+        const posicaoInicialX = tempoInicial;
+        const posicaoMinY = numeroDoProcesso * tamanhoDoRetangulo;
+        const posicaoMaxY = numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos;
 
-    const geometry = new THREE.BufferGeometry()
+        const verticesTriangulo = []
 
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
+        verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+        verticesTriangulo.push(speed, posicaoMinY, 0.0);
+        verticesTriangulo.push(speed, posicaoMaxY, 0.0);
 
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        wireframe: false
-    });
-    const triangulo = new THREE.Mesh(geometry, material);
+        verticesTriangulo.push(speed, posicaoMaxY, 0.0);
+        verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
+        verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
 
-    triangulo.translateX(0.0)
-    triangulo.translateY(0.0)
-    scene.add(triangulo);
-}
+        const geometry = new THREE.BufferGeometry();
 
-function desenhaProcesso() {
-    speed += speedAnimation;
-    const verticesTriangulo = []
-    verticesTriangulo.push(10 + 0.0, 10.0, 0.0)
-    verticesTriangulo.push(10 + speed, 10.0, 0.0)
-    verticesTriangulo.push(10 + speed, 20.0, 0.0)
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
 
-    verticesTriangulo.push(10 + speed, 20.0, 0.0)
-    verticesTriangulo.push(10 + 0.0, 20.0, 0.0)
-    verticesTriangulo.push(10 + 0.0, 10.0, 0.0)
+        const material = new THREE.MeshBasicMaterial({
+            color: 0x00ff00,
+            wireframe: false
+        });
+        const triangulo = new THREE.Mesh(geometry, material);
 
-    const geometry = new THREE.BufferGeometry()
-
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
-
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        wireframe: false
-    });
-    const triangulo = new THREE.Mesh(geometry, material);
-
-    /* triangulo.translateX(10.0)
-    triangulo.translateY(10.0) */
-    scene.add(triangulo);
+        scene.add(triangulo);
+    }
 }
 
 function iniciar() {
     render()
 }
 
+function reiniciarCena() {
+    if (scene.children.length > 2) {
+        for (let i = scene.children.length - 1; i >= 2; i--) {
+            scene.remove(scene.children[i]);
+        }
+    }
+    speed = 0.0;
+}
+
 function render() {
     requestAnimationFrame(render);
-    desenhaExecucaoDeProcesso();
-    desenhaProcesso();
+    if (listaDeProcessos.length > 0) {
+        console.log(listaDeProcessos.length);
+        for (let i = 0; i < listaDeProcessos.length; i++) {
+            const processo = listaDeProcessos[i];
+            desenhaExecucaoDeProcesso(i, processo.tempoDeChegada, processo.tempoDeExecucao);
+        }
+    }
     renderer.render(scene, camera);
-    desenhaExecucaoDeProcesso();
 }
 
 init();
