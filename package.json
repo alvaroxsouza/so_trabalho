@@ -1,6 +1,7 @@
 {
-  "dependencies": {
-    "three": "^0.140.2",
-    "dat.gui": "^0.7.9"
-  }
+    "dependencies": {
+        "three": "^0.140.2",
+        "dat.gui": "^0.7.9"
+    },
+    "type": "module"
 }

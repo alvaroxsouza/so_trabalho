@@ -1,5 +1,6 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js';
+import { tempoDeExecucaoTotal, Processo } from './FIFO.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
@@ -100,7 +101,7 @@ function addProcesso() {
     quantidadeDeProcessos++;
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
-    const processoCorrente = new ProcessoInput()
+    const processoCorrente = new Processo()
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
