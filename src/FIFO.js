@@ -26,7 +26,7 @@ function fifo(arr, item) {
 
 
 //Tempo total de execução
-const tempoDeExecucaoTotal = (processes, n) => {
+const tempoDeExecucaoTotal = (processes, n, tempoRetangulos) => {
 
 	processes.sort(function (a, b) { //sort para ordenar o tempo de chegada
 		if (a.timeStart > b.timeStart) {
@@ -38,16 +38,25 @@ const tempoDeExecucaoTotal = (processes, n) => {
 		return 0;
 	});
 		
+	var tempoRetangulos = new Array(n).fill(0); //vetor com o tempo de cada retangulo
 	for (let i = 0; i < n; i++) {
+		var retangulo = { //objeto que guarda o id, tmepo inicial e tempo final de um retangulo
+			id: (i+1),
+			tempoInicial: t,
+			tempoFinal: 0
+		}
 		//tempo atual maior ou igual o tempo de chegada
-			t += processes[i].burstTime; //tempo de execução
-			total+=t-processes[i].timeStart; //tempo de execução menos os tempos de chegada
+		t += processes[i].burstTime; //tempo de execução
+		retangulo["tempoFinal"] = t; // guarda o tempo final do retangulo
+		total+=t-processes[i].timeStart; //tempo de execução menos os tempos de chegada
 		//se nenhum processo for executado adiciona 1 ao tempo 
+		tempoRetangulos[i] = retangulo; //guarda o objeto retangulo no vetor
 	} 
+	return tempoRetangulos;
 }
 
 function  findTurnAroundTime (n) {
-	console.log(total/n);
+	return (total/n);
 }
 
 
@@ -66,8 +75,10 @@ function main() {
 	processes[1] = teste2;
 	processes[2] = teste3;
 
-	tempoDeExecucaoTotal (processes, n);
-	findTurnAroundTime (n);
+	//tempoDeExecucaoTotal (processes, n);
+	console.log(tempoDeExecucaoTotal (processes, n));
+
+	console.log(findTurnAroundTime (n));
 	
 
 }
