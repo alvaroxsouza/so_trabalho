@@ -1,15 +1,15 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
 import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js';
 
-const LIMITE_SUPERIOR = 100;
+const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
 
-const gui = new GUI({ name: "Escalonamento", width: 500 })
+const gui = new GUI({ name: "Escalonamento", width: 400 })
 
 /* Configurações da renderização */
 let scene, renderer, camera, axesHelper, escala;
 var speedAnimation = 0.001;
-let speed = 0.0;
+let speed = 0.1;
 
 const ESPAÇO_ESQUERDA = -40;
 const ESPAÇO_BAIXO = -40;
@@ -91,39 +91,10 @@ function controlIniciarFolder() {
     let iniciarProcessos = { Inicia: iniciar, 'Reinicia': reiniciarCena, 'Velocidade da animação': 0 };
     iniciarProcessosFolder.add(iniciarProcessos, 'Inicia')
     iniciarProcessosFolder.add(iniciarProcessos, 'Reinicia')
-    iniciarProcessosFolder.add(iniciarProcessos, 'Velocidade da animação', 0.0001, 0.001, 0.000001)
+    iniciarProcessosFolder.add(iniciarProcessos, 'Velocidade da animação', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { speedAnimation += value })
     iniciarProcessosFolder.open()
 }
-
-function init() {
-    renderer = new THREE.WebGLRenderer();
-    renderer.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
-    const element = document.getElementById('canvas-three')
-    element.appendChild(renderer.domElement);
-
-    controlFolderSistema();
-    controlFolderProcessos();
-    controlAlgoritmosFolder();
-    controlIniciarFolder();
-
-
-    scene = new THREE.Scene();
-
-    const width = 900;
-    const height = 500;
-
-    renderer.setSize(width, height);
-
-    // camera = new THREE.OrthographicCamera(width / -100, width / 2, height / 2, height / -50, width / height, 0);
-    camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO,
-        width / height, 0);
-    scene.add(camera);
-
-    axesHelper = new THREE.AxesHelper(10000);
-
-    scene.add(axesHelper);
-};
 
 function addProcesso() {
     quantidadeDeProcessos++;
@@ -131,16 +102,15 @@ function addProcesso() {
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
     const processoCorrente = new ProcessoInput()
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-        .onChange((value) => { processoCorrente.setTempoDeChegada(value) });
+        .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-        .onChange((value) => { processoCorrente.setTempoDeExecucao(value) });
+        .onChange((value) => { processoCorrente.setTempoDeExecucao(value); });
     processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-        .onChange((value) => { processoCorrente.setDeadline(value) });
+        .onChange((value) => { processoCorrente.setDeadline(value); });
     listaDeProcessos.push(processoCorrente)
 }
 
 function removeProcesso() {
-    console.log(quantidadeDeProcessos)
     if (quantidadeDeProcessos > 0) {
         processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo ' + quantidadeDeProcessos])
         listaDeProcessos.pop()
@@ -151,16 +121,12 @@ function removeProcesso() {
 function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
-            console.log("FIFO")
             break;
         case "Round-Robin":
-            console.log("Round-Robin")
             break;
         case "EDF":
-            console.log("EDF")
             break;
         case "SJF":
-            console.log("SJF")
             break;
         default:
             alert("Erro, escolha um algoritmo de escalonamento válido");
@@ -168,8 +134,8 @@ function executaAlgoritmoDeEscalonamento(value) {
     }
 }
 
-function desenhaExecucaoDeProcesso(numeroDoProcesso = 2, tempoInicial = 10, tempoFinal = 10) {
-    speed += speedAnimation;
+function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0) {
+    speed += speedAnimation / 100000;
     if (speed <= tempoFinal) {
         const tamanhoDoRetangulo = 10;
         const quantidadeDeAlturaDosRetangulos = 10;
@@ -178,12 +144,11 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 2, tempoInicial = 10, temp
         const posicaoMinY = numeroDoProcesso * tamanhoDoRetangulo;
         const posicaoMaxY = numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos;
 
-        const verticesTriangulo = []
+        const verticesTriangulo = [];
 
         verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
         verticesTriangulo.push(speed, posicaoMinY, 0.0);
         verticesTriangulo.push(speed, posicaoMaxY, 0.0);
-
         verticesTriangulo.push(speed, posicaoMaxY, 0.0);
         verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
         verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
@@ -202,8 +167,37 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 2, tempoInicial = 10, temp
     }
 }
 
-function iniciar() {
-    render()
+function desenhaSobrecargaDeProcesso(sobrecarga = 0, ultimoProcessoPosicaoX = 0, ultimoProcessoPosicaoY = 0) {
+    speed += speedAnimation;
+    if (speed <= tempoFinal) {
+        const tamanhoDoRetangulo = 10;
+        const quantidadeDeAlturaDosRetangulos = 10;
+
+        const posicaoInicialX = ultimoProcessoPosicaoX;
+        const posicaoMinY = numeroDoProcesso * tamanhoDoRetangulo;
+        const posicaoMaxY = numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos;
+
+        const verticesTriangulo = [];
+
+        verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+        verticesTriangulo.push(speed, posicaoMinY, 0.0);
+        verticesTriangulo.push(speed, posicaoMaxY, 0.0);
+        verticesTriangulo.push(speed, posicaoMaxY, 0.0);
+        verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
+        verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+
+        const geometry = new THREE.BufferGeometry();
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
+
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xFF0000,
+            wireframe: false
+        });
+        const triangulo = new THREE.Mesh(geometry, material);
+
+        scene.add(triangulo);
+    }
 }
 
 function reiniciarCena() {
@@ -218,13 +212,40 @@ function reiniciarCena() {
 function render() {
     requestAnimationFrame(render);
     if (listaDeProcessos.length > 0) {
-        console.log(listaDeProcessos.length);
         for (let i = 0; i < listaDeProcessos.length; i++) {
             const processo = listaDeProcessos[i];
             desenhaExecucaoDeProcesso(i, processo.tempoDeChegada, processo.tempoDeExecucao);
         }
     }
     renderer.render(scene, camera);
+}
+
+function iniciar() { render(); }
+
+function iniciarCena() {
+    renderer = new THREE.WebGLRenderer();
+    renderer.setClearColor(new THREE.Color(1.0, 1.0, 1.0));
+    const element = document.getElementById('canvas-three')
+    element.appendChild(renderer.domElement);
+
+    const width = 900;
+    const height = 500;
+    renderer.setSize(width, height);
+    camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO,
+        width / height, 0);
+    scene = new THREE.Scene();
+    axesHelper = new THREE.AxesHelper(10000);
+    axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0))
+    scene.add(camera);
+    scene.add(axesHelper);
+}
+
+function init() {
+    controlFolderSistema();
+    controlFolderProcessos();
+    controlAlgoritmosFolder();
+    controlIniciarFolder();
+    iniciarCena();
 }
 
 init();
