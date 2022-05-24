@@ -24,7 +24,8 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 	});
 
 	let tempoCorrente = 0; // Current time
-
+	let controleTempo = false;
+	let foiReordenado = false;
 	//Continua percorrendo os processos de maneira round robin até que todos eles estejam completos
 	while (1) {
 		let acabou = true;
@@ -32,6 +33,10 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 		for (let i = 0; i < quantidadeDeProcessos; i++) {
 			//tempo atual maior ou igual o tempo de chegada
 			if(tempoCorrente >= priorityEndline[i].tempoDeChegada){
+				if(controleTempo){
+					tempoCorrente+=1;
+					controleTempo = false;
+				}
 				let retangulo = {
 					id: priorityEndline[i].id,
 					tempoInicial: tempoCorrente,
@@ -40,6 +45,10 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 				// Se o tempo de execução de um processo for maior que 0
 				// então precisa processar mais
 				if (priorityEndline[i].tempoDeExecucaoAtual > 0) {
+					if(aux["controle"]){
+						aux["indice"] = -1;
+						aux["controle"] = false;
+					}
 					acabou = false; // Existe um processo pendente
 	
 					if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
@@ -50,7 +59,11 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 						// Diminui o tempo de execução do processo atual
 						priorityEndline[i].tempoDeExecucaoAtual -= quantum;
 						retangulo.tempoFinal = tempoCorrente;
-        				listaDeRetangulos.push(retangulo)
+        				listaDeRetangulos.push(retangulo);
+						//mudança do tempo para controle manual da inserção de um novo elemento
+						controleTempo = true;
+						tempoCorrente-=1;
+						console.log(tempoCorrente)
 					}
 	
 					// Se o tempo de execução for menor ou igual ao quantum. 
@@ -70,14 +83,15 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 				}
 			}
 			//se nenhum processo for executado adiciona 1 ao tempo 
-			else if (i == quantidadeDeProcessos-1) {
+			else {
+				console.log(aux["indice"] + " -- " + i)
 				if (!aux["controle"]){
 					aux["indice"] = i;
 					aux["controle"] = true;
 				}
 				else if (aux["indice"] == i){
 					aux["indice"] = -1;
-					aux["controle"] = true;
+					aux["controle"] = false;
 					tempoCorrente++;
 				}
 			}
@@ -85,6 +99,19 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 		// Se todos os processos forem concluídos
 		if (acabou == true)
 			break;
+
+		if(!foiReordenado){
+			priorityEndline.sort(function (a, b) { //ordenando pelo deadline de cada processo
+				if (a.id > b.id) {
+					return 1;
+				}
+				if (a.id < b.id) {
+					return -1;
+				}
+				return 0;
+			});
+			foiReordenado = true;
+		}
 	}
 	console.log(listaDeRetangulos);
 }
