@@ -1,38 +1,29 @@
+// Test Setup
+import { Processo } from "./Processo.js";
+
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
  * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
  * Se existir mais de 1 processo com o tempo de chegada >= tempo atual,
  * ordena pelo tempo de execução e adiciona no vetor principal.
  */
-var vetorPrincipal; //Vetor para funcionamento do algoritmo
-var vetorAuxiliar; //Vetor para ordenar pelo tempo de execução
-var vetorCopiaProcessos; //Vetor para ordenar pelo tempo de chegada
-var over; //Variável que guarda a sobrecarga
-
-class Processo {
-	constructor(id, timeStart, burstTime) {
-		this.id = id;
-		this.timeStart = timeStart;
-		this.burstTime = burstTime;
-		this.burstTimeNow = burstTime;
-		this.waitingTime = 0;
-		this.turnAround = 0;
-	}
-}
 
 // Função que calcula o tempo de espera de cada processo
-const findWaitingTime = (processes, n, ciclo) => {
-	let t = 0; // Current time
-	vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
+const findWaitingTime = (listaDeProcessos) => {
+	let quantidadeDeProcessos = listaDeProcessos.length;
+	let tempoCorrente = 0; // Current time
+	let vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
+	let listaDeRetangulos = [];
 
-	vetorCopiaProcessos = new Array(n).fill(0); //Faz uma cópia dos processos
-	for (let i = 0; i < n; i++)
-		vetorCopiaProcessos[i] = processes[i];
+	//Vetor para ordenar pelo tempo de chegada
+	let vetorCopiaProcessos = new Array(quantidadeDeProcessos).fill(0); //Faz uma cópia dos processos
+	for (let i = 0; i < quantidadeDeProcessos; i++)
+		vetorCopiaProcessos[i] = listaDeProcessos[i];
 	vetorCopiaProcessos.sort(function (a, b) { //Ordenando pela ordem de chegada de cada processo
-		if (a.timeStart > b.timeStart) {
+		if (a.tempoDeChegada > b.tempoDeChegada) {
 			return 1;
 		}
-		if (a.timeStart < b.timeStart) {
+		if (a.tempoDeChegada < b.tempoDeChegada) {
 			return -1;
 		}
 		return 0;
@@ -40,18 +31,25 @@ const findWaitingTime = (processes, n, ciclo) => {
 
 	//Loop de execução
 	while (1) {
-		vetorAuxiliar = [];
-		for (let i = 0; i < n; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
-			if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].timeStart <= t) {
+		let vetorAuxiliar = []; //Vetor para ordenar pelo tempo de execução
+
+		let retangulo = {
+            id: -1,
+            tempoInicial: 0,
+            tempoFinal: 0
+        }
+
+		for (let i = 0; i < quantidadeDeProcessos; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
+			if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].tempoDeChegada <= tempoCorrente) {
 				vetorAuxiliar.push(vetorCopiaProcessos[i]);
 				vetorCopiaProcessos[i] = 0;
 			}
 		}
 		vetorAuxiliar.sort(function (a, b) { //Ordena o vetor auxiliar pelo tempo de execução
-			if (a.burstTime > b.burstTime) {
+			if (a.tempoDeExecucao > b.tempoDeExecucao) {
 				return 1;
 			}
-			if (a.burstTime < b.burstTime) {
+			if (a.tempoDeExecucao < b.tempoDeExecucao) {
 				return -1;
 			}
 			return 0;
@@ -65,69 +63,52 @@ const findWaitingTime = (processes, n, ciclo) => {
 
 		//Se existir processo na fila
 		if (vetorPrincipal && vetorPrincipal.length > 0) {
-			if (vetorPrincipal[0].burstTimeNow > 0) {
-
-				//Se o tempo de execução restante for maior que o ciclo
-				if (vetorPrincipal[0].burstTimeNow > ciclo) {
-
-					t += ciclo; //Adiciona um ciclo no tempo
-
-					// Diminui do tempo de execução restante o valor do ciclo
-					vetorPrincipal[0].burstTimeNow -= ciclo;
-				}
-
-				//Se o tempo de execução restante for menor ou igual ao ciclo
-				//o último ciclo desse processo será executado
-				else {
-					//Aumenta o valor do tempo pelo tempo de execução que falta no processo
-					t = t + vetorPrincipal[0].burstTimeNow;
-
-					//Define o tempo de espera do processo como o tempo atual menos o tempo de execução
-					if (processes) {
-						for (let i = 0; i < n; i++) {
-							if (vetorPrincipal[0]) {
-								if (processes[i].id == vetorPrincipal[0].id) {
-									processes[i].waitingTime = t - vetorPrincipal[0].burstTime;
-								}
+			if (vetorPrincipal[0].tempoDeExecucaoAtual > 0) {
+				retangulo.tempoInicial = tempoCorrente; // Define o tempo inicial do retangulo
+				tempoCorrente += vetorPrincipal[0].tempoDeExecucao; // Adiciona um ciclo no tempo
+				retangulo.id = vetorPrincipal[0].id; // Define o processo do retangulo
+				retangulo.tempoFinal = tempoCorrente; // Define o tempo final do retangulo
+				listaDeRetangulos.push(retangulo);
+				//Define o tempo de espera do processo como o tempo atual menos o tempo de execução
+				if (listaDeProcessos) {
+					for (let i = 0; i < quantidadeDeProcessos; i++) {
+						if (vetorPrincipal[0]) {
+							if (listaDeProcessos[i].id == vetorPrincipal[0].id) {
+								listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao;
 							}
 						}
 					}
+				}
 
-					//O processo foi totalmente executado, então seu tempo de execução restante é 0
-					vetorPrincipal[0].burstTimeNow = 0;
-					//Retira o processo executado da fila
-					vetorPrincipal.shift();
-					//Retira os elementos nulos do vetor
-					if (vetorPrincipal) {
-						vetorPrincipal = vetorPrincipal.filter(function (el) {
-							return el != null;
-						});
-					}
-					//Se o vetor principal ficou vazio após a execução
-					//E todos os processos na cópia estão como 0, finaliza o loop
-					//TODO if todos os elementos da cópia são iguais a zero
-					if (vetorPrincipal.length == 0) {
-						if (acabouProcesso(n)) {
-							break;
-						}
+				//Retira o processo executado da fila
+				vetorPrincipal.shift();
+				//Retira os elementos nulos do vetor
+				if (vetorPrincipal) {
+					vetorPrincipal = vetorPrincipal.filter(function (el) {
+						return el != null;
+					});
+				}
+				//Se o vetor principal ficou vazio após a execução
+				//E todos os processos na cópia estão como 0, finaliza o loop
+				if (vetorPrincipal.length == 0) {
+					if (acabouExecucao(vetorCopiaProcessos, quantidadeDeProcessos)) {
+						
+						return listaDeRetangulos;
 					}
 				}
 			}
-			else {
-				t++;
-			}
 		}
 		else {
-			t++;
+			tempoCorrente++;
 		}
 	}
 }
 
 //Condição de parada
-function acabouProcesso(n) {
+function acabouExecucao(vetorCopiaProcessos, quantidadeDeProcessos) {
 	var acabou = true;
 
-	for (let i = 0; i < n; i++) {
+	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		if (vetorCopiaProcessos[i] != 0) {
 			acabou = false;
 		}
@@ -137,65 +118,37 @@ function acabouProcesso(n) {
 }
 
 // Função para calcular TAT 
-const findTurnAroundTime = (processes, n) => {
+const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
 
-	for (let i = 0; i < n; i++) {
-		if (processes) {
-			processes[i].turnAround = processes[i].burstTime + processes[i].waitingTime - processes[i].timeStart;
+	for (let i = 0; i < quantidadeDeProcessos; i++) {
+		if (listaDeProcessos) {
+			listaDeProcessos[i].turnAround = listaDeProcessos[i].tempoDeExecucao + listaDeProcessos[i].tempoDeEspera - listaDeProcessos[i].tempoDeChegada;
 		}
 	}
 }
 
 // Função para calcular o tempo médio
-const findavgTime = (processes, n, quantum) => {
+const findavgTime = (listaDeProcessos) => {
 	let total_wt = 0, total_tat = 0;
-
+	let quantidadeDeProcessos = listaDeProcessos.length;
+	
 	// Função para encontrar o tempo de espera de todos os processos
-	findWaitingTime(processes, n, quantum, over);
+	findWaitingTime(listaDeProcessos);
 
 	// Função para encontrar o TAT de todos os processos
-	findTurnAroundTime(processes, n);
-
-	// Display processes along with all details
-	//document.write(`Processes Burst time Waiting time Turn around time<br/>`);
-	console.log(`Processes/Burst time/Waiting time/Turn around time`);
+	findTurnAroundTime(listaDeProcessos, quantidadeDeProcessos);
 
 	// Calcula o tempo total de espera e o TAT total 
-	for (let i = 0; i < n; i++) {
-		if (processes) {
-			total_wt = total_wt + processes[i].waitingTime;
-			total_tat = total_tat + processes[i].turnAround;
-
-			//document.write(`${i + 1} ${bt[i]} ${wt[i]} ${tat[i]}<br/>`);
-			console.log(`${processes[i].id} ${processes[i].burstTime} ${processes[i].waitingTime} ${processes[i].turnAround}`);
-		}
+	for (let i = 0; i < quantidadeDeProcessos; i++) {
+		if (listaDeProcessos) {
+			total_wt = total_wt + listaDeProcessos[i].tempoDeEspera;
+			total_tat = total_tat + listaDeProcessos[i].turnAround;}
 	}
 
-	console.log(`Average waiting time = ${total_wt / n}`);
-	//document.write(`Average waiting time = ${total_wt / n}`);
-	console.log(`Average turn around time = ${total_tat / n}`);
-	//document.write(`<br/>Average turn around time = ${total_tat / n}`);
-	console.log(processes)
+	let valorWtTat = {
+		Wt: (total_wt / quantidadeDeProcessos),
+		Tat: (total_tat / quantidadeDeProcessos)
+	}
+
+	return valorWtTat;
 }
-
-function main() {
-	over = 1;
-
-	let ciclo = 1;
-
-
-	var teste = new Processo(1, 1, 6);
-	var teste2 = new Processo(2, 7, 4);
-	var teste3 = new Processo(3, 7, 7);
-
-	let n = 3;
-
-	var processes = new Array(n).fill(0);
-	processes[0] = teste;
-	processes[1] = teste2;
-	processes[2] = teste3;
-
-	findavgTime(processes, n, ciclo);
-}
-
-main();
