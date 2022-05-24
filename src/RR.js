@@ -56,15 +56,32 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 					acabou = false; // Existe um processo pendente
 	
 					if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
+						var retanguloSobrecarga = { //retangulo para imprimir sobrecarga
+							id: -1,
+							tempoInicial: 0,
+							tempoFinal: 0
+						}
+
 						// Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
 						tempoCorrente += quantum;
-						tempoCorrente += overload; // adcionando tempo de sobrecarga
+						// Defini tempo inicial do retangulo de sobrecarga
+						retanguloSobrecarga.tempoInicial = tempoCorrente;
+						// Defini tempo final do retangulo do processo atual 
+						retangulo.tempoFinal = tempoCorrente;
+						// Adcionando tempo de sobrecarga
+						tempoCorrente += overload; 
+						// Defini tempo final do retangulo de sobrecarga
+						retanguloSobrecarga.tempoFinal = tempoCorrente;
+
 	
 						// Diminui o tempo de execução do processo atual
 						priorityEndline[i].tempoDeExecucaoAtual -= quantum;
-						retangulo.tempoFinal = tempoCorrente;
+						
+						// Adiciona o retangulo do processo atual e do de sobrecarga
         				listaDeRetangulos.push(retangulo);
-						//mudança do tempo para controle manual da inserção de um novo elemento
+						listaDeRetangulos.push(retanguloSobrecarga);
+
+						// Mudança do tempo para controle manual da inserção de um novo elemento
 						controleTempo = true;
 						tempoCorrente-=1;
 					}
