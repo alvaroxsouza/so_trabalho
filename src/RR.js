@@ -2,7 +2,10 @@
 import { Processo } from "./Processo.js";
 
 // Função para encontrar o tempo de espera para todos os processos
-const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overload) => {
+// Retorna a lista de rentagulas e a lista de processos
+// Chamar primeiro esse método para pegar lista de retangulos
+const findWaitingTime = (listaDeProcessos, quantum, overload) => {
+	let quantidadeDeProcessos = listaDeProcessos.length;
 	let aux = {
 		indice: -1,
 		controle: false
@@ -10,6 +13,7 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 	let listaDeRetangulos = [];
 	// Vetor de processos
 	var priorityEndline = new Array(quantidadeDeProcessos).fill(0);
+	
 	for (let i = 0; i < quantidadeDeProcessos; i++)
 		priorityEndline[i] = listaDeProcessos[i];
 	
@@ -63,7 +67,6 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 						//mudança do tempo para controle manual da inserção de um novo elemento
 						controleTempo = true;
 						tempoCorrente-=1;
-						console.log(tempoCorrente)
 					}
 	
 					// Se o tempo de execução for menor ou igual ao quantum. 
@@ -84,7 +87,6 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 			}
 			//se nenhum processo for executado adiciona 1 ao tempo 
 			else {
-				console.log(aux["indice"] + " -- " + i)
 				if (!aux["controle"]){
 					aux["indice"] = i;
 					aux["controle"] = true;
@@ -113,63 +115,45 @@ const findWaitingTime = (listaDeProcessos, quantidadeDeProcessos, quantum, overl
 			foiReordenado = true;
 		}
 	}
-	console.log(listaDeRetangulos);
+	let listasRentaguloEndline = {
+		listaDeRetangulos: listaDeRetangulos,
+		priorityEndline: priorityEndline
+	}
+	return listasRentaguloEndline;
 }
 
 // Função para calcular turn around time
-const findTurnAroundTime = (quantidadeDeProcessos) => {
-	for (let i = 0; i < quantidadeDeProcessos; i++)
-		//tempo no processador = tempo de execução + tempo de espera - tempo de chegada
-		priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera - priorityEndline[i].tempoDeChegada; 
+const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
+	for (let i = 0; i < quantidadeDeProcessos; i++){
+		if(priorityEndline)
+			//tempo no processador = tempo de execução + tempo de espera - tempo de chegada
+			priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera - priorityEndline[i].tempoDeChegada; 
+	}
+		
 }
 
 // Função para calcular o tempo médio
-const findavgTime = (listaDeProcessos, quantidadeDeProcessos, quantum) => {
+const findavgTime = (listaDeProcessos, quantum, over) => {
+	let quantidadeDeProcessos = listaDeProcessos.length;
+
 	let total_wt = 0, total_tat = 0;
 
 	// Função para encontrar o tempo de espera de todos os processos
-	findWaitingTime(listaDeProcessos, quantidadeDeProcessos, quantum, over);
+	let priorityEndline = findWaitingTime(listaDeProcessos, quantum, over).priorityEndline;
 
 	// Função para encontrar turn around time de todos os processos
-	findTurnAroundTime(quantidadeDeProcessos);
-
-	console.log(`listaDeProcessos/Burst time/Waiting time/Turn around time`);
+	findTurnAroundTime(quantidadeDeProcessos, priorityEndline);
 
 	// Calcular o tempo total de espera e o total turn around time
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		total_wt = total_wt + priorityEndline[i].tempoDeEspera;
 		total_tat = total_tat + priorityEndline[i].turnAround;
-
-		//document.write(`${i + 1} ${bt[i]} ${wt[i]} ${tat[i]}<br/>`);
-		console.log(`${priorityEndline[i].id} ${priorityEndline[i].tempoDeExecucao} ${priorityEndline[i].tempoDeEspera} ${priorityEndline[i].turnAround}`);
 	}
 
-	console.log(`Average waiting time = ${total_wt / quantidadeDeProcessos}`);
-	//document.write(`Average waiting time = ${total_wt / n}`);
-	console.log(`Average turn around time = ${total_tat / quantidadeDeProcessos}`);
-	//document.write(`<br/>Average turn around time = ${total_tat / n}`);
-	console.log(priorityEndline)
+	let valorWtTat = {
+		Wt: (total_wt / quantidadeDeProcessos),
+		Tat: (total_tat / quantidadeDeProcessos)
+	}
+
+	return valorWtTat;
 }
-
-function main() {
-	let over = 1;
-	// Time quantum
-	let quantum = 2;
-	// findavgTime(listaDeProcessos, n, burst_time, quantum, over, tempoDeChegada);
-
-	var teste = new Processo(1, 0, 10);
-	var teste2 = new Processo(2, 12, 5);
-	var teste3 = new Processo(3, 2, 8);
-
-	let n = 3;
-
-	var listaDeProcessos = new Array(n).fill(0);
-	listaDeProcessos[0] = teste;
-	listaDeProcessos[1] = teste2;
-	listaDeProcessos[2] = teste3;
-
-	findWaitingTime(listaDeProcessos, n, quantum, 1);
-}
-
-main();
-
