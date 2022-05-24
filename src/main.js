@@ -1,6 +1,9 @@
 import * as THREE from '../node_modules/three/build/three.module.js';
+// import { TextGeometry } from 'examples/jsm/geometries/TextGeometry';
+// import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js';
-import { tempoDeExecucaoTotal, Processo } from './FIFO.js';
+import { listaDeProcessosFIFO } from './FIFO.js';
+import { Processo } from './Processo.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
@@ -11,6 +14,8 @@ const gui = new GUI({ name: "Escalonamento", width: 400 })
 let scene, renderer, camera, axesHelper, escala;
 var speedAnimation = 0.001;
 let speed = 0.1;
+
+let listaDeRetangulos = []
 
 const ESPAÇO_ESQUERDA = -40;
 const ESPAÇO_BAIXO = -40;
@@ -40,7 +45,7 @@ class SistemaInput {
 const sistema = new SistemaInput();
 
 /* Classe que guarda as variáveis obtidas através dos controllers, para os processos */
-class ProcessoInput {
+/* class ProcessoInput {
     constructor(tempoDeChegada = 0, tempoDeExecucao = 0, deadline = 0) {
         this.tempoDeChegada = tempoDeChegada;
         this.tempoDeExecucao = tempoDeExecucao;
@@ -58,7 +63,7 @@ class ProcessoInput {
     setDeadline(deadline) {
         this.deadline = deadline;
     }
-}
+} */
 
 function controlFolderSistema() {
     sistemaFolder = gui.addFolder('Sistema');
@@ -101,7 +106,7 @@ function addProcesso() {
     quantidadeDeProcessos++;
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
-    const processoCorrente = new Processo()
+    const processoCorrente = new Processo(quantidadeDeProcessos - 1)
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
@@ -122,6 +127,9 @@ function removeProcesso() {
 function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
+            if (listaDeProcessos.length > 0) {
+                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+            }
             break;
         case "Round-Robin":
             break;
@@ -212,12 +220,34 @@ function reiniciarCena() {
 
 function render() {
     requestAnimationFrame(render);
-    if (listaDeProcessos.length > 0) {
-        for (let i = 0; i < listaDeProcessos.length; i++) {
-            const processo = listaDeProcessos[i];
-            desenhaExecucaoDeProcesso(i, processo.tempoDeChegada, processo.tempoDeExecucao);
-        }
-    }
+
+    listaDeRetangulos.forEach((retangulo) => {
+        desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal)
+    })
+
+    const fontJson = require("../node_modules/three/examples/fonts/gentilis_regular.typeface.json");
+
+    const font = new THREE.Font(fontJson);
+
+    const geometry = new TextGeometry('Hello three.js!', {
+        font: font,
+        size: 80,
+        height: 5,
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 10,
+        bevelSize: 8,
+        bevelOffset: 0,
+        bevelSegments: 5
+    });
+
+    materials = [
+        new THREE.MeshPhongMaterial({ color: 0xffffff, flatShading: true }), // front
+        new THREE.MeshPhongMaterial({ color: 0xffffff }) // side
+    ];
+
+    const texto = new THREE.Mesh(geometry, )
+
     renderer.render(scene, camera);
 }
 

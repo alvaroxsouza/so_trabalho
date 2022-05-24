@@ -1,10 +1,11 @@
 class Processo {
-    constructor(id, tempoDeChegada, tempoDeExecucao) {
+    constructor(id, tempoDeChegada = 0, tempoDeExecucao = 0, deadline = 0) {
         this.id = id;
         this.tempoDeChegada = tempoDeChegada;
         this.tempoDeExecucao = tempoDeExecucao;
         this.tempoDeExecucaoAtual = tempoDeExecucao;
         this.deadlineEstaEstourado = false;
+        this.deadline = 0;
         this.tempoDeEspera = 0;
         this.turnAround = 0;
     }
@@ -63,6 +64,14 @@ class Processo {
 
     setTurnAround(turnAround) {
         this.turnAround = turnAround;
+    }
+
+    getDeadline() {
+        return this.Deadline;
+    }
+
+    setDeadline(deadline) {
+        this.deadline = deadline;
     }
 }
 export { Processo };
