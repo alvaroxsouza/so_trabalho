@@ -160,7 +160,7 @@ function mostrarTextoDeVariaveis(text, value, interval = 0) {
     loader.load('src/helvetiker_regular.typeface.json', function(font) {
         const textGeo = new TextGeometry(textoDeApresentacao, {
             font: font,
-            size: 15,
+            size: 0.5,
             height: 0.02,
             curveSegments: 12,
             bevelThickness: 0.1,
@@ -175,8 +175,8 @@ function mostrarTextoDeVariaveis(text, value, interval = 0) {
         textMesh1.geometry = textGeo;
         textMesh1.material = materials;
 
-        textMesh1.position.x = -170;
-        textMesh1.position.y = 100 - interval;
+        textMesh1.position.x = -4.7;
+        textMesh1.position.y = 10 - interval;
     })
 
     scene.add(textMesh1);
@@ -192,7 +192,7 @@ function render() {
                 desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal);
                 if (podeEscrever) {
                     mostrarTextoDeVariaveis("TurnAround", turnAround);
-                    mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime, 50);
+                    mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime, 3);
                     podeEscrever = false;
                 }
             }
@@ -205,19 +205,12 @@ function iniciar() {
     if (scene.children.length > 2) {
         for (let i = scene.children.length - 1; i >= 62; i--) {
             scene.remove(scene.children[i]);
+            flag = false;
         }
     }
     render()
     velocidadeAtual = 0.0;
 }
-
-/* function limparCena() {
-    if (scene.children.length > 2) {
-        for (let i = scene.children.length - 1; i >= 62; i--) {
-            scene.remove(scene.children[i]);
-        }
-    }
-} */
 
 function iniciarCena() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -227,7 +220,6 @@ function iniciarCena() {
     const width = 1200;
     const height = 600;
     renderer.setSize(width, height);
-    // camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO, width / height, 0);
     camera = new THREE.OrthographicCamera(-5, 30, 40, -1, width / height, 0);
     scene = new THREE.Scene();
     for (let i = 0; i < 40; i += 1) {
