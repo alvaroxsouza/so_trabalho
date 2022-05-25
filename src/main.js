@@ -17,8 +17,9 @@ const gui = new GUI({ name: "Escalonamento", width: 400 })
 let scene, renderer, camera, axesHelper;
 let podeEscrever = false,
     flag = false;
-var speedAnimation = 0.001;
-let speed = 0.1;
+var velocidadeDaAnimacao = 0.001;
+let velocidadeAnimacaoAnterior = 0;
+let velocidadeAtual = 0.1;
 
 let listaDeRetangulos = []
 let quantidadeDeProcessos = 0;
@@ -62,8 +63,11 @@ function controlIniciarFolder() {
     iniciarProcessosFolder = gui.addFolder('Iniciar');
     let iniciarProcessos = { Inicia: iniciar, 'Velocidade da animação': 0 };
     iniciarProcessosFolder.add(iniciarProcessos, 'Inicia');
+    let valorAnterior = 0;
     iniciarProcessosFolder.add(iniciarProcessos, 'Velocidade da animação', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-        .onChange((value) => { speedAnimation += value });
+        .onChange((value) => {
+            velocidadeDaAnimacao = value;
+        });
     iniciarProcessosFolder.open()
 }
 
@@ -109,21 +113,22 @@ function executaAlgoritmoDeEscalonamento(value) {
 }
 
 function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
-    speed += speedAnimation / 100000;
-    if (speed <= tempoFinal) {
-        const tamanhoDoRetangulo = 10;
+    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 1000000);
+    velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
+    if (velocidadeAtual <= tempoFinal) {
+        const tamanhoDoRetangulo = 2;
         const quantidadeDeAlturaDosRetangulos = 10;
 
         const posicaoInicialX = tempoInicial;
-        const posicaoMinY = numeroDoProcesso * tamanhoDoRetangulo;
-        const posicaoMaxY = numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos;
+        const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
+        const posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
 
         const verticesTriangulo = [];
 
         verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
-        verticesTriangulo.push(speed, posicaoMinY, 0.0);
-        verticesTriangulo.push(speed, posicaoMaxY, 0.0);
-        verticesTriangulo.push(speed, posicaoMaxY, 0.0);
+        verticesTriangulo.push(velocidadeAtual, posicaoMinY, 0.0);
+        verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
+        verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
         verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
         verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
 
@@ -203,16 +208,16 @@ function iniciar() {
         }
     }
     render()
-    speed = 0.0;
+    velocidadeAtual = 0.0;
 }
 
-function limparCena() {
+/* function limparCena() {
     if (scene.children.length > 2) {
         for (let i = scene.children.length - 1; i >= 62; i--) {
             scene.remove(scene.children[i]);
         }
     }
-}
+} */
 
 function iniciarCena() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -223,15 +228,14 @@ function iniciarCena() {
     const height = 600;
     renderer.setSize(width, height);
     // camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO, width / height, 0);
-    camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO, width / height, 0);
+    camera = new THREE.OrthographicCamera(-5, 30, 40, -1, width / height, 0);
     scene = new THREE.Scene();
-    for (let i = 0; i < 1200; i += 20) {
+    for (let i = 0; i < 40; i += 1) {
         axesHelper = new THREE.AxesHelper(1000);
         axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
         axesHelper.position.x = i;
         scene.add(axesHelper);
     }
-    console.log(scene)
     scene.add(camera);
     renderer.render(scene, camera);
 }
