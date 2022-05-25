@@ -42,7 +42,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 			id: 0,
 			tempoInicial: 0,
 			tempoFinal: 0,
-			sobrecarga: false
+			idDeadline: false
 		}
 
 		for (let i = 0; i < quantidadeDeProcessos; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
@@ -81,27 +81,22 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 
 					retangulo.tempoInicial = tempoCorrente;
 					// Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
-					console.log(tempoCorrente)
-					tempoCorrente += quantum;
+					tempoCorrente += quantum;					
 					// Defini tempo inicial do retangulo de sobrecarga
 					retanguloSobrecarga.tempoInicial = tempoCorrente;
 					// Defini tempo final do retangulo do processo atual 
-					console.log(tempoCorrente)
 					retangulo.tempoFinal = tempoCorrente;
 					// Adcionando tempo de sobrecarga
-					console.log(tempoCorrente)
-					tempoCorrente += overload; 
+					tempoCorrente += overload;
+										
 					// Defini tempo final do retangulo de sobrecarga
-					retanguloSobrecarga.tempoFinal = tempoCorrente;
-					//Define o tempo de espera do processo como o tempo atual menos o tempo de execução
-					
-					
+					retanguloSobrecarga.tempoFinal = tempoCorrente;					
 					// Diminui do tempo de execução restante o valor do quantum
 					vetorPrincipal[0].tempoDeExecucaoAtual -= quantum;
 							
 					// Adiciona o retangulo do processo atual e do de sobrecarga
 					listaDeRetangulos.push(retangulo);
-					listaDeRetangulos.push(retanguloSobrecarga);	
+					listaDeRetangulos.push(retanguloSobrecarga);
 				}
 
 				//Se o tempo de execução restante for menor ou igual ao quantum
@@ -111,7 +106,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 					//Aumenta o valor do tempo pelo tempo de execução que falta no processo
 					tempoCorrente = tempoCorrente + vetorPrincipal[0].tempoDeExecucaoAtual;
 
-					retanguloSobrecarga.tempoFinal = tempoCorrente;
+					retangulo.tempoFinal = tempoCorrente;
 					listaDeRetangulos.push(retangulo);
 					//Define o tempo de espera do processo como o tempo atual menos o tempo de execução
 					if (listaDeProcessos) {
@@ -176,7 +171,7 @@ const findTurnAroundTime = (listaDeProcessos,quantidadeDeProcessos) => {
 }
 
 // Função para fazer o teste de estouro de deadline e calcular esse estouro
-const deadlineOverFlow = (listaDeProcessos, quantidadeDeProcessos) => {
+const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos, quantidadeDeProcessos) => {
 
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		if (listaDeProcessos) {
