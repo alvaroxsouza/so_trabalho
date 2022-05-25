@@ -5,9 +5,10 @@ class Processo {
         this.tempoDeExecucao = tempoDeExecucao;
         this.tempoDeExecucaoAtual = tempoDeExecucao;
         this.deadlineEstaEstourado = false;
-        this.deadline = 0;
+        this.deadline = deadline + tempoDeChegada;
         this.tempoDeEspera = 0;
         this.turnAround = 0;
+        this.tempoQueComecou = 0;
     }
 
     getId() {

@@ -6,10 +6,6 @@ import { Processo } from "./Processo.js";
  * ordena pelo deadline e adiciona no vetor principal.
  */
 
-var over; //Variável que guarda a sobrecarga
-
-
-
 // Função que calcula o tempo de espera de cada processo
 const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 	let quantidadeDeProcessos = listaDeProcessos.length;

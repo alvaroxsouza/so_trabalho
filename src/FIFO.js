@@ -47,13 +47,38 @@ function listaDeProcessosFIFO(listaDeProcessos) {
 }
 
 function findTurnAroundTime(listaDeProcessos) {
-    listaDeProcessosFIFO(listaDeProcessos);
+    let listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
 
     let total = 0;
     listaDeProcessos.forEach((processo) => {
         total += processo.turnAround;
     })
-    return (total / listaDeProcessos.length);
+
+    let retorno = {
+		listaDeRetangulos: listaDeRetangulos,
+        Tat: (total / listaDeProcessos.length)
+	}
+
+	return retorno;
 }
+
+function main() {
+	let n = 3;
+
+	var teste = new Processo(1, 0, 4);
+	var teste2 = new Processo(2, 2, 6);
+	var teste3 = new Processo(3, 4, 7);
+
+	var listaDeProcessos = new Array(n).fill(0);
+	listaDeProcessos[0] = teste;
+	listaDeProcessos[1] = teste2;
+	listaDeProcessos[2] = teste3;
+
+	let retorno = findTurnAroundTime(listaDeProcessos);
+	console.log(retorno.listaDeRetangulos)
+	console.log(retorno.Tat);
+}
+
+main();
 
 export { listaDeProcessosFIFO, findTurnAroundTime }

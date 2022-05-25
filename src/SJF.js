@@ -92,7 +92,6 @@ const findWaitingTime = (listaDeProcessos) => {
 				//E todos os processos na cópia estão como 0, finaliza o loop
 				if (vetorPrincipal.length == 0) {
 					if (acabouExecucao(vetorCopiaProcessos, quantidadeDeProcessos)) {
-						
 						return listaDeRetangulos;
 					}
 				}
@@ -133,7 +132,7 @@ const findavgTime = (listaDeProcessos) => {
 	let quantidadeDeProcessos = listaDeProcessos.length;
 	
 	// Função para encontrar o tempo de espera de todos os processos
-	findWaitingTime(listaDeProcessos);
+	let listaDeRetangulos = findWaitingTime(listaDeProcessos);
 
 	// Função para encontrar o TAT de todos os processos
 	findTurnAroundTime(listaDeProcessos, quantidadeDeProcessos);
@@ -142,13 +141,16 @@ const findavgTime = (listaDeProcessos) => {
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		if (listaDeProcessos) {
 			total_wt = total_wt + listaDeProcessos[i].tempoDeEspera;
-			total_tat = total_tat + listaDeProcessos[i].turnAround;}
+			total_tat = total_tat + listaDeProcessos[i].turnAround;
+		}
 	}
+	console.log(total_tat)
 
-	let valorWtTat = {
+	let retorno = {
+		listaDeRetangulos: listaDeRetangulos,
 		Wt: (total_wt / quantidadeDeProcessos),
 		Tat: (total_tat / quantidadeDeProcessos)
 	}
 
-	return valorWtTat;
+	return retorno;
 }

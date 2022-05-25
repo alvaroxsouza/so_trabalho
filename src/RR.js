@@ -93,8 +93,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 						tempoCorrente = tempoCorrente + priorityEndline[i].tempoDeExecucaoAtual;
 						
 						// O tempo de espera é o tempo atual menos o tempo usado por este processo
-						priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao;
-	
+						priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao - priorityEndline[i].tempoDeChegada;	
 						// À medida que o processo é totalmente executado faz seu tempo de execução restante = 0
 						priorityEndline[i].tempoDeExecucaoAtual = 0;
 						retangulo.tempoFinal = tempoCorrente;
@@ -156,7 +155,9 @@ const findavgTime = (listaDeProcessos, quantum, over) => {
 	let total_wt = 0, total_tat = 0;
 
 	// Função para encontrar o tempo de espera de todos os processos
-	let priorityEndline = findWaitingTime(listaDeProcessos, quantum, over).priorityEndline;
+	let retornoWt = findWaitingTime(listaDeProcessos, quantum, over);
+	let priorityEndline = retornoWt.priorityEndline;
+	let listaDeRetangulos = retornoWt.listaDeRetangulos;
 
 	// Função para encontrar turn around time de todos os processos
 	findTurnAroundTime(quantidadeDeProcessos, priorityEndline);
@@ -168,6 +169,7 @@ const findavgTime = (listaDeProcessos, quantum, over) => {
 	}
 
 	let valorWtTat = {
+		listaDeRetangulos: listaDeRetangulos,
 		Wt: (total_wt / quantidadeDeProcessos),
 		Tat: (total_tat / quantidadeDeProcessos)
 	}
