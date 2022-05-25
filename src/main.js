@@ -15,7 +15,8 @@ const gui = new GUI({ name: "Escalonamento", width: 400 })
 
 /* Configurações da renderização */
 let scene, renderer, camera, axesHelper;
-let podeEscrever = false;
+let podeEscrever = false,
+    flag = false;
 var speedAnimation = 0.001;
 let speed = 0.1;
 
@@ -135,13 +136,13 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempo
             wireframe: false
         });
         const triangulo = new THREE.Mesh(geometry, material);
-
         scene.add(triangulo);
     } else {
         const ultimoRetangulo = listaDeRetangulos[listaDeProcessos.length - 1];
-        if (ultimoRetangulo) {
+        if (ultimoRetangulo && !flag) {
             if (tempoFinal == listaDeRetangulos[listaDeProcessos.length - 1].tempoFinal) {
                 podeEscrever = true;
+                flag = true;
             }
         }
     }
@@ -197,12 +198,20 @@ function render() {
 
 function iniciar() {
     if (scene.children.length > 2) {
-        for (let i = scene.children.length - 1; i >= 2; i--) {
+        for (let i = scene.children.length - 1; i >= 62; i--) {
             scene.remove(scene.children[i]);
         }
     }
+    render()
     speed = 0.0;
-    render();
+}
+
+function limparCena() {
+    if (scene.children.length > 2) {
+        for (let i = scene.children.length - 1; i >= 62; i--) {
+            scene.remove(scene.children[i]);
+        }
+    }
 }
 
 function iniciarCena() {
@@ -213,12 +222,18 @@ function iniciarCena() {
     const width = 1200;
     const height = 600;
     renderer.setSize(width, height);
+    // camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO, width / height, 0);
     camera = new THREE.OrthographicCamera(ESPAÇO_ESQUERDA, width + ESPAÇO_ESQUERDA, height + ESPAÇO_BAIXO, ESPAÇO_BAIXO, width / height, 0);
     scene = new THREE.Scene();
-    axesHelper = new THREE.AxesHelper(10000);
-    axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
+    for (let i = 0; i < 1200; i += 20) {
+        axesHelper = new THREE.AxesHelper(1000);
+        axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
+        axesHelper.position.x = i;
+        scene.add(axesHelper);
+    }
+    console.log(scene)
     scene.add(camera);
-    scene.add(axesHelper);
+    renderer.render(scene, camera);
 }
 
 function init() {
