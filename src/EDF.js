@@ -42,7 +42,8 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 			id: 0,
 			tempoInicial: 0,
 			tempoFinal: 0,
-			idDeadline: false
+			isDeadline: false,
+			deadline: -1
 		}
 
 		for (let i = 0; i < quantidadeDeProcessos; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
@@ -113,7 +114,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 						for (let i = 0; i < quantidadeDeProcessos; i++) {
 							if (vetorPrincipal[0]) {
 								if (listaDeProcessos[i].id == vetorPrincipal[0].id) {
-									listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao;
+									listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao - listaDeProcessos[i].tempoDeChegada;;
 								}
 							}
 						}
@@ -161,28 +162,79 @@ function acabouProcesso(vetorCopiaProcessos, quantidadeDeProcessos) {
 }
 
 // Função para calcular TAT 
-const findTurnAroundTime = (listaDeProcessos,quantidadeDeProcessos) => {
-
+const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		if (listaDeProcessos) {
-			listaDeProcessos[i].turnAround = listaDeProcessos[i].tempoDeExecucao + listaDeProcessos[i].tempoDeEspera - listaDeProcessos[i].tempoDeChegada;
+			listaDeProcessos[i].turnAround = listaDeProcessos[i].tempoDeExecucao + listaDeProcessos[i].tempoDeEspera;
 		}
 	}
 }
 
 // Função para fazer o teste de estouro de deadline e calcular esse estouro
 const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos, quantidadeDeProcessos) => {
-
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		if (listaDeProcessos) {
-			if (listaDeProcessos[i].turnAround > listaDeProcessos[i].deadline) {
-				listaDeProcessos[i].deadlineOverflow = true;
-				if (listaDeProcessos[i].deadlineOverflow) {
-					listaDeProcessos[i].deadlineOverflowQuant = listaDeProcessos[i].turnAround - listaDeProcessos[i].deadline;
-				}
-			}
+			if (listaDeProcessos[i].turnAround > listaDeProcessos[i].deadline) 
+				listaDeProcessos[i].deadlineEstaEstourado = true;
 		}
 	}
+
+	listaDeRetangulos.forEach((retangulo) => {
+		let processoAtual = listaDeProcessos.find(element => element.id == retangulo.id);
+		if(processoAtual) {
+			if(processoAtual.deadlineEstaEstourado){
+				retangulo.deadline = processoAtual.deadline;
+			}
+		}
+	})
+
+	let listaDeRetangulosFinal = [] //Faz uma cópia dos retangulos
+	let listaDeRetangulosInvertida = new Array(listaDeRetangulos.length).fill(0); //Faz uma cópia dos retangulos
+	for (let i = 0; i < listaDeRetangulos.length; i++) //Inverte a cópia da lista de retangulos
+		listaDeRetangulosInvertida[i] = listaDeRetangulos[i];
+		listaDeRetangulosInvertida.sort(function (a, b) { 
+		if (a.tempoFinal < b.tempoFinal) {
+			return 1;
+		}
+		if (a.tempoFinal > b.tempoFinal) {
+			return -1;
+		}
+		return 0;
+	});
+
+	listaDeRetangulos.forEach((retangulo) => {
+		if(retangulo.deadline > -1){
+			//Deadline divide o retangulo
+			console.log("Tempo Inicial: " + retangulo.tempoInicial + " Tempo final: " + retangulo.tempoFinal + " Deadline: " + retangulo.deadline)
+			if((retangulo.tempoFinal >= retangulo.deadline) && (retangulo.tempoInicial < retangulo.deadline)){
+				let retangulo1 = {
+					id: retangulo.id,
+					tempoInicial: retangulo.tempoInicial,
+					tempoFinal: retangulo.deadline,
+					isDeadline: false,
+					deadline: retangulo.deadline
+				}
+				let retangulo2 = {
+					id: retangulo.id,
+					tempoInicial: retangulo.deadline,
+					tempoFinal: retangulo.tempoFinal,
+					isDeadline: true,
+					deadline: retangulo.deadline
+				}
+				if(retangulo1.tempoInicial != retangulo1.tempoFinal)
+					listaDeRetangulosFinal.push(retangulo1);
+				if(retangulo2.tempoInicial != retangulo2.tempoFinal)
+					listaDeRetangulosFinal.push(retangulo2);
+			}
+			else if (retangulo.tempoInicial >= retangulo.deadline){
+				retangulo.isDeadline = true;
+				listaDeRetangulosFinal.push(retangulo);
+			}
+		}
+		else
+			listaDeRetangulosFinal.push(retangulo);
+	})
+	return listaDeRetangulosFinal;
 }
 
 // Função para calcular o tempo médio
@@ -234,8 +286,12 @@ function main() {
 	listaDeProcessos[2] = teste3;
 
 
-	//findWaitingTime(listaDeProcessos, quantum, over);
-	console.log(findWaitingTime(listaDeProcessos, quantum, over))
+	let lista = findWaitingTime(listaDeProcessos, quantum, over);
+	console.log(lista);
+	findTurnAroundTime(listaDeProcessos, n);
+	let listafinal = deadlineOverFlow(lista, listaDeProcessos, n);
+	console.log(listafinal);
+	//console.log(listaDeProcessos);
 }
 
 main();
