@@ -1,10 +1,10 @@
 /* import * as THREE from 'three';
 import { FontLoader } from 'FontLoader';
 import { TextGeometry } from 'TextGeometry'; */
-import * as THREE from '../node_modules/three/build/three.module.js';
-import { FontLoader } from '../node_modules/three/examples/jsm/loaders/FontLoader.js';
+import * as THREE from '/node_modules/three/build/three.module.js';
+import { FontLoader } from '/node_modules/three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from '/node_modules/three/examples/jsm/geometries/TextGeometry.js';
-import { GUI } from '../node_modules/dat.gui/build/dat.gui.module.js';
+import { GUI } from '/node_modules/dat.gui/build/dat.gui.module.js';
 import { listaDeProcessosFIFO } from './FIFO.js';
 import { Processo } from './Processo.js';
 import { SistemaInput } from './SistemaInput.js';
