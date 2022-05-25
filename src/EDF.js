@@ -1,5 +1,4 @@
 import { Processo } from "./Processo.js";
-
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
  * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
@@ -170,8 +169,10 @@ const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
 	}
 }
 
-// Função para fazer o teste de estouro de deadline e calcular esse estouro
-const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos, quantidadeDeProcessos) => {
+// Função para fazer o teste de estouro de deadline e retornar os retangulos com deadline
+const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
+	let quantidadeDeProcessos = listaDeProcessos.length;
+
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
 		if (listaDeProcessos) {
 			if (listaDeProcessos[i].turnAround > listaDeProcessos[i].deadline) 
@@ -205,7 +206,6 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos, quantidadeDeProce
 	listaDeRetangulos.forEach((retangulo) => {
 		if(retangulo.deadline > -1){
 			//Deadline divide o retangulo
-			console.log("Tempo Inicial: " + retangulo.tempoInicial + " Tempo final: " + retangulo.tempoFinal + " Deadline: " + retangulo.deadline)
 			if((retangulo.tempoFinal >= retangulo.deadline) && (retangulo.tempoInicial < retangulo.deadline)){
 				let retangulo1 = {
 					id: retangulo.id,
@@ -238,20 +238,17 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos, quantidadeDeProce
 }
 
 // Função para calcular o tempo médio
-const findavgTime = (listaDeProcessos, quantum) => {
+const findavgTime = (listaDeProcessos, quantum, over) => {
 	let quantidadeDeProcessos = listaDeProcessos.length;
 	let total_wt = 0, total_tat = 0;
 
 	// Função para encontrar o tempo de espera de todos os processos
-	findWaitingTime(listaDeProcessos, quantum, over);
+	let listaDeRetangulos = findWaitingTime(listaDeProcessos, quantum, over);
 
 	// Função para encontrar o TAT de todos os processos
 	findTurnAroundTime(listaDeProcessos, quantidadeDeProcessos);
 
-	// Função para fazer o teste de estouro de deadline e calcular esse estouro
-	deadlineOverFlow(listaDeProcessos, quantidadeDeProcessos);
-
-	
+	let listaDeRetangulosFinal = deadlineOverFlow(listaDeRetangulos, listaDeProcessos);
 
 	// Calcula o tempo total de espera e o TAT total 
 	for (let i = 0; i < quantidadeDeProcessos; i++) {
@@ -261,37 +258,11 @@ const findavgTime = (listaDeProcessos, quantum) => {
 		}
 	}
 
-	let valorWtTat = {
+	let retorno = {
+		listaDeRetangulos: listaDeRetangulosFinal,
 		Wt: (total_wt / quantidadeDeProcessos),
 		Tat: (total_tat / quantidadeDeProcessos)
 	}
 
-	return valorWtTat;
+	return retorno;
 }
-
-function main() {
-	over = 1;
-
-	let quantum = 2;
-
-	let n = 3;
-
-	var teste = new Processo(1, 0, 4, 10);
-	var teste2 = new Processo(2, 2, 6, 8);
-	var teste3 = new Processo(3, 4, 7, 10);
-
-	var listaDeProcessos = new Array(n).fill(0);
-	listaDeProcessos[0] = teste;
-	listaDeProcessos[1] = teste2;
-	listaDeProcessos[2] = teste3;
-
-
-	let lista = findWaitingTime(listaDeProcessos, quantum, over);
-	console.log(lista);
-	findTurnAroundTime(listaDeProcessos, n);
-	let listafinal = deadlineOverFlow(lista, listaDeProcessos, n);
-	console.log(listafinal);
-	//console.log(listaDeProcessos);
-}
-
-main();
