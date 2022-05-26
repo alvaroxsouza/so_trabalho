@@ -120,7 +120,7 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempo
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
     if (velocidadeAtual <= tempoFinal) {
         const tamanhoDoRetangulo = 2;
-        const quantidadeDeAlturaDosRetangulos = 10;
+        const quantidadeDeAlturaDosRetangulos = 2;
 
         const posicaoInicialX = tempoInicial;
         const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
