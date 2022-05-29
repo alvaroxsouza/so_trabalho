@@ -8,57 +8,60 @@
  tempo e adiciona a nova página no lugar.
   */
 
-function leastRecentlyUsed(referenceString, frameNumber) {
-    let pageInMem = []; //Lista de páginas que estão na memória
-    let pageFaults = []; //Lista de faltas 
-    let pageInMemArray = []; //vetor da lista de páginas que estão na memória
-    let pageNotInMem = []; //Lista de páginas que não estão na memória
-    let pageNotInMemArray = []; //vetor da lista de páginas que não estão na memória
+function LRU(stringDeReferencia, numeroDeQuadros) {
+    let pagEmMemoria = []; //Lista de páginas que estão na memória
+    let faltaDePagina = []; //Lista de faltas 
+    let pagEmMemoriaArray = []; //vetor da lista de páginas que estão na memória
+    let pafNaoEstaNaMemoria = []; //Lista de páginas que não estão na memória
+    let pafNaoEstaNaMemoriaArray = []; //vetor da lista de páginas que não estão na memória
     
 
-    for (let i = 0; i < referenceString.length ; i++){
+    for (let i = 0; i < stringDeReferencia.length ; i++){
         //Já há referência para a página buscada: não há falta de página
-        if (pageInMem.includes(referenceString[i])){
-            pageFaults.push('NF');
+        if (pagEmMemoria.includes(stringDeReferencia[i])){
+            faltaDePagina.push('NF');
             //Atualizando ele como acessado no momento
-            pageInMem.splice(pageInMem.indexOf(referenceString[i]),1);
-            pageInMem.unshift(referenceString[i]);
+            pagEmMemoria.splice(pagEmMemoria.indexOf(stringDeReferencia[i]),1);
+            pagEmMemoria.unshift(stringDeReferencia[i]);
         }
          //Não há referência para a pagina buscada:há falta de página
         else{
-            pageFaults.push('F');
+            faltaDePagina.push('F');
             //Se há espaço livre na memória
-            if (pageInMem.length < frameNumber){
+            if (pagEmMemoria.length < numeroDeQuadros){
                 //adiciona na primeira posição livre
-                pageInMem.unshift(referenceString[i]);
+                pagEmMemoria.unshift(stringDeReferencia[i]);
             }
              //Se não há espaço livre
             else{
-                if (pageNotInMem.length >= frameNumber) {
-                    pageNotInMem.pop(); //Retira a página que estava no vetor de páginas que não estão dentro da memória
+                if (pafNaoEstaNaMemoria.length >= numeroDeQuadros) {
+                    pafNaoEstaNaMemoria.pop(); //Retira a página que estava no vetor de páginas que não estão dentro da memória
                 }
-                pageNotInMem.unshift(pageInMem.pop()); //Retira a página que tá no vetor de páginas que estão dentro da memória
+                pafNaoEstaNaMemoria.unshift(pagEmMemoria.pop()); //Retira a página que tá no vetor de páginas que estão dentro da memória
                                                         // e coloca no vetor de páginas que não estão dentro da memória
                 //adiciona a página
-                pageInMem.unshift(referenceString[i]);
+                pagEmMemoria.unshift(stringDeReferencia[i]);
             }
         }
-        pageInMemArray.push([...pageInMem]);
-        pageNotInMemArray.push([...pageNotInMem]);
+        pagEmMemoriaArray.push([...pagEmMemoria]);
+        pafNaoEstaNaMemoriaArray.push([...pafNaoEstaNaMemoria]);
     }
     
-    console.log(pageFaults)
-    console.log(pageInMemArray)
-    console.log(pageNotInMemArray)
+    console.log("Controle de falta de páginas:")
+    console.log(faltaDePagina)
+    console.log("Páginas em memória:")
+    console.log(pagEmMemoriaArray)
+    console.log("Páginas que não estão na memória:")
+    console.log(pafNaoEstaNaMemoriaArray)
     
     //Retorna todos os vetores
-    return {pageInMemArray, pageFaults, pageNotInMemArray};
+    return {pagEmMemoriaArray, faltaDePagina, pafNaoEstaNaMemoriaArray};
 }
 
 function main() {
-	let frameNumber = 4;
-    let referenceString = "70120304230321201701" 
-    leastRecentlyUsed(referenceString, frameNumber);  
+	let numeroDeQuadros = 4;
+    let stringDeReferencia = "70120304230321201701" 
+    LRU(stringDeReferencia, numeroDeQuadros);  
 }
 
 main();
