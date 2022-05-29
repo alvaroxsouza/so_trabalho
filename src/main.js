@@ -1,9 +1,6 @@
 import * as THREE from 'three';
 import { FontLoader } from 'FontLoader';
 import { TextGeometry } from 'TextGeometry';
-/* import * as THREE from '../node_modules/three/build/three.module.js';
-import { FontLoader } from '../node_modules/three/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from '../node_modules/three/examples/jsm/geometries/TextGeometry.js'; */
 import { GUI } from 'GUI';
 import { listaDeProcessosFIFO } from './FIFO.js';
 import { Processo } from './Processo.js';
@@ -11,6 +8,9 @@ import { SistemaInput } from './SistemaInput.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
+
+const LARGURA = 1200;
+const ALTURA = 600;
 
 const ESPAÇO_ESQUERDA = -180;
 const ESPAÇO_BAIXO = -40;
@@ -104,10 +104,19 @@ function executaAlgoritmoDeEscalonamento(value) {
             }
             break;
         case "Round-Robin":
+            if (listaDeProcessos.length > 0) {
+                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+            }
             break;
         case "EDF":
+            if (listaDeProcessos.length > 0) {
+                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+            }
             break;
         case "SJF":
+            if (listaDeProcessos.length > 0) {
+                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+            }
             break;
         default:
             alert("Erro, escolha um algoritmo de escalonamento válido");
@@ -220,10 +229,20 @@ function iniciarCena() {
     renderer.setClearColor(new THREE.Color(1.0, 1.0, 1.0));
     const element = document.getElementById('canvas-three');
     element.appendChild(renderer.domElement);
-    const width = 1200;
-    const height = 600;
+
+    const width = LARGURA;
+    const height = ALTURA;
+
     renderer.setSize(width, height);
-    camera = new THREE.OrthographicCamera(-5, 30, 40, -1, width / height, 0);
+
+    const ESQUERDA_CAMERA = -5;
+    const DIREITA_CAMERA = 30;
+    const CIMA_CAMERA = 40;
+    const BAIXO_CAMERA = -1;
+
+
+    camera = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, width / height, 0);
+
     scene = new THREE.Scene();
     for (let i = 0; i < 40; i += 1) {
         axesHelper = new THREE.AxesHelper(1000);
