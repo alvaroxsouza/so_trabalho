@@ -5,6 +5,9 @@ import { GUI } from 'GUI';
 import { listaDeProcessosFIFO } from './FIFO.js';
 import { Processo } from './Processo.js';
 import { SistemaInput } from './SistemaInput.js';
+import { findavgTimeEDF } from './EDF.js';
+import { findavgTimeRR } from './RR.js';
+import { findavgTimeSJF } from './SJF.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
@@ -97,6 +100,7 @@ function removeProcesso() {
 }
 
 function executaAlgoritmoDeEscalonamento(value) {
+    let obj;
     switch (value) {
         case "FIFO":
             if (listaDeProcessos.length > 0) {
@@ -105,17 +109,20 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "Round-Robin":
             if (listaDeProcessos.length > 0) {
-                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+                obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                listaDeRetangulos = obj.listaRetangulos;
             }
             break;
         case "EDF":
             if (listaDeProcessos.length > 0) {
-                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+                obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                listaDeRetangulos = obj.listaDeRetangulos;
             }
             break;
         case "SJF":
             if (listaDeProcessos.length > 0) {
-                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+                obj = findavgTimeSJF(listaDeProcessos);
+                listaDeRetangulos = obj.listaDeRetangulos;
             }
             break;
         default:

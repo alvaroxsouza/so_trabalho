@@ -1,5 +1,5 @@
 class SistemaInput {
-    constructor(quantum, sobrecarga) {
+    constructor(quantum = 0, sobrecarga = 0) {
         this.quantum = quantum;
         this.sobrecarga = sobrecarga;
     }
