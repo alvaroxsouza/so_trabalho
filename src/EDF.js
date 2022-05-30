@@ -37,6 +37,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
             id: 0,
             tempoInicial: 0,
             tempoFinal: 0,
+            sobrecarga: false,
             isDeadline: false,
             deadline: -1
         }
@@ -72,7 +73,8 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                     var retanguloSobrecarga = { //retangulo para imprimir sobrecarga
                         id: -1,
                         tempoInicial: 0,
-                        tempoFinal: 0
+                        tempoFinal: 0,
+                        sobrecarga: true
                     }
 
                     retangulo.tempoInicial = tempoCorrente;
