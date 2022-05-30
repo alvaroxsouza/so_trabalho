@@ -1,4 +1,5 @@
 import { Processo } from "./Processo.js";
+import { Retangulo } from "./Retangulo.js";
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
  * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
@@ -33,14 +34,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
     while (1) {
         vetorAuxiliar = [];
 
-        let retangulo = {
-            id: 0,
-            tempoInicial: 0,
-            tempoFinal: 0,
-            sobrecarga: false,
-            isDeadline: false,
-            deadline: -1
-        }
+        let retangulo =  new Retangulo();
 
         for (let i = 0; i < quantidadeDeProcessos; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
             if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].tempoDeChegada <= tempoCorrente) {
@@ -70,12 +64,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                 retangulo.id = vetorPrincipal[0].id;
                 //Se o tempo de execução restante for maior que o quantum
                 if (vetorPrincipal[0].tempoDeExecucaoAtual > quantum) {
-                    var retanguloSobrecarga = { //retangulo para imprimir sobrecarga
-                        id: -1,
-                        tempoInicial: 0,
-                        tempoFinal: 0,
-                        sobrecarga: true
-                    }
+                    let retanguloSobrecarga = new Retangulo(vetorPrincipal[0].id, 0, true);
 
                     retangulo.tempoInicial = tempoCorrente;
                     // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
@@ -204,20 +193,8 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
         if (retangulo.deadline > -1) {
             //Deadline divide o retangulo
             if ((retangulo.tempoFinal >= retangulo.deadline) && (retangulo.tempoInicial < retangulo.deadline)) {
-                let retangulo1 = {
-                    id: retangulo.id,
-                    tempoInicial: retangulo.tempoInicial,
-                    tempoFinal: retangulo.deadline,
-                    isDeadline: false,
-                    deadline: retangulo.deadline
-                }
-                let retangulo2 = {
-                    id: retangulo.id,
-                    tempoInicial: retangulo.deadline,
-                    tempoFinal: retangulo.tempoFinal,
-                    isDeadline: true,
-                    deadline: retangulo.deadline
-                }
+                let retangulo1 =  new Retangulo(retangulo.id, retangulo.tempoInicial, false, retangulo.deadline, false, retangulo.deadline);
+                let retangulo2 =  new Retangulo(retangulo.id, retangulo.deadline, false, retangulo.tempoFinal, true, retangulo.deadline);
                 if (retangulo1.tempoInicial != retangulo1.tempoFinal)
                     listaDeRetangulosFinal.push(retangulo1);
                 if (retangulo2.tempoInicial != retangulo2.tempoFinal)
