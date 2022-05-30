@@ -202,7 +202,10 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
             } else if (retangulo.tempoInicial >= retangulo.deadline) {
                 retangulo.deadlineBool = true;
                 listaDeRetangulosFinal.push(retangulo);
-            }
+            } else{
+				retangulo.deadlineBool = false;
+				listaDeRetangulosFinal.push(retangulo);
+			}
         } else
             listaDeRetangulosFinal.push(retangulo);
     })
