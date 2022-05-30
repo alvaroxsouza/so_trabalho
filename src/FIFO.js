@@ -1,5 +1,6 @@
 // Test Setup
 import { Processo } from "./Processo.js";
+import { Retangulo } from "./Retangulo.js";
 
 function listaDeProcessosFIFO(listaDeProcessos) {
     let tempoCorrente = 0;
@@ -17,11 +18,7 @@ function listaDeProcessosFIFO(listaDeProcessos) {
     }
     listaDeProcessos.forEach((processo) => {
         if (processo.tempoDeChegada <= tempoCorrente) {
-            let retangulo = {
-                id: processo.id,
-                tempoInicial: tempoCorrente,
-                tempoFinal: 0
-            }
+            let retangulo = new Retangulo(processo.id, tempoCorrente);
             tempoCorrente += processo.tempoDeExecucao;
             processo.turnAround = tempoCorrente - processo.tempoDeChegada;
             processo.tempoDeEspera = processo.turnAround - processo.tempoDeExecucao;

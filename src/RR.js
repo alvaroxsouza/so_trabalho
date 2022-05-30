@@ -1,5 +1,6 @@
 // Test Setup
 import { Processo } from "./Processo.js";
+import { Retangulo } from "./Retangulo.js";
 
 // Função para encontrar o tempo de espera para todos os processos
 // Retorna a lista de rentagulas e a lista de processos
@@ -41,12 +42,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                     tempoCorrente += 1;
                     controleTempo = false;
                 }
-                let retangulo = {
-                        id: priorityEndline[i].id,
-                        tempoInicial: tempoCorrente,
-                        tempoFinal: 0,
-                        sobrecarga: false
-                    }
+                let retangulo = new Retangulo(priorityEndline[i].id, tempoCorrente);
                     // Se o tempo de execução de um processo for maior que 0
                     // então precisa processar mais
                 if (priorityEndline[i].tempoDeExecucaoAtual > 0) {
@@ -57,13 +53,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                     acabou = false; // Existe um processo pendente
 
                     if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
-                        var retanguloSobrecarga = { //retangulo para imprimir sobrecarga
-                            id: priorityEndline[i].id,
-                            tempoInicial: 0,
-                            tempoFinal: 0,
-                            sobrecarga: true
-
-                        }
+                        let retanguloSobrecarga = new Retangulo(priorityEndline[i].id, 0, true);
 
                         // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
                         tempoCorrente += quantum;
