@@ -82,7 +82,6 @@ function addProcesso() {
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
     const processoCorrente = new Processo(quantidadeDeProcessos - 1)
-    console.log(processoCorrente);
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
@@ -113,21 +112,25 @@ function executaAlgoritmoDeEscalonamento(value) {
         case "Round-Robin":
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
-                console.log(obj.listaDeRetangulos)
                 listaDeRetangulos = obj.listaDeRetangulos;
+                turnAround = obj.Tat;
+                waitingTime = obj.Wt;
             }
             break;
         case "EDF":
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
+                turnAround = obj.Tat;
+                waitingTime = obj.Wt;
             }
             break;
         case "SJF":
             if (listaDeProcessos.length > 0) {
-                console.log(listaDeProcessos)
                 let obj = findavgTimeSJF(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
+                turnAround = obj.Tat;
+                waitingTime = obj.Wt;
             }
             break;
         default:
@@ -137,30 +140,17 @@ function executaAlgoritmoDeEscalonamento(value) {
 }
 
 function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
-    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 1000000);
+    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 100000 : -(velocidadeDaAnimacao / 1000000);
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
-
-    let idAnterior;
 
     if (velocidadeAtual <= tempoFinal) {
         const tamanhoDoRetangulo = 2;
         const quantidadeDeAlturaDosRetangulos = 2;
 
         const posicaoInicialX = tempoInicial;
-        let posicaoMinY, posicaoMaxY;
 
-
-        if (numeroDoProcesso >= 0) {
-            posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
-            posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
-        } else {
-            if (idAnterior) {
-                posicaoMinY = Math.round(idAnterior * tamanhoDoRetangulo);
-                posicaoMaxY = Math.round(idAnterior * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
-            }
-        }
-        console.log(posicaoMinY);
-        console.log(posicaoMaxY);
+        const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
+        const posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
 
         const verticesTriangulo = [];
         verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
@@ -189,7 +179,6 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempo
             }
         }
     }
-    idAnterior = numeroDoProcesso;
 }
 
 function mostrarTextoDeVariaveis(text, value, interval = 0) {
@@ -228,14 +217,14 @@ function render() {
         listaDeRetangulos.forEach((retangulo) => {
             i++;
             if (retangulo) {
-                if (retangulo.id < 0) {
+                if (retangulo.sobrecarga) {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
                 } else {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal);
                 }
                 if (podeEscrever) {
-                    mostrarTextoDeVariaveis("TurnAround", turnAround);
-                    mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime, 3);
+                    mostrarTextoDeVariaveis("TurnAround\n", turnAround.toFixed(2));
+                    mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime.toFixed(2), 3);
                     podeEscrever = false;
                 }
             }
