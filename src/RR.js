@@ -43,8 +43,8 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                     controleTempo = false;
                 }
                 let retangulo = new Retangulo(priorityEndline[i].id, tempoCorrente);
-                    // Se o tempo de execução de um processo for maior que 0
-                    // então precisa processar mais
+                // Se o tempo de execução de um processo for maior que 0
+                // então precisa processar mais
                 if (priorityEndline[i].tempoDeExecucaoAtual > 0) {
                     if (aux["controle"]) {
                         aux["indice"] = -1;
@@ -141,7 +141,7 @@ const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
 }
 
 // Função para calcular o tempo médio
-const findavgTimeRR = (listaDeProcessos, quantum, over) => {
+const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
     let quantidadeDeProcessos = listaDeProcessos.length;
 
     let total_wt = 0,

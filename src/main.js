@@ -247,6 +247,7 @@ function render() {
         listaDeRetangulos.forEach((retangulo) => {
             i++;
             if (retangulo) {
+                console.log(retangulo)
                 if (retangulo.isSobrecarga()) {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
                 } else if (retangulo.isDeadlineBool()) {
@@ -286,7 +287,7 @@ function controle(event) {
 
 function iniciar() {
     if (scene.children.length > 2) {
-        for (let i = scene.children.length - 1; i >= 62; i--) {
+        for (let i = scene.children.length - 1; i >= 81; i--) {
             scene.remove(scene.children[i]);
             flag = false;
         }
@@ -333,6 +334,8 @@ function iniciarCena() {
         scene.add(axesHelper);
         numeroEixo += 1;
     }
+
+    console.log(scene);
     scene.add(camera);
     renderer.render(scene, camera);
 }

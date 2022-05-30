@@ -202,10 +202,10 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
             } else if (retangulo.tempoInicial >= retangulo.deadline) {
                 retangulo.deadlineBool = true;
                 listaDeRetangulosFinal.push(retangulo);
-            } else{
-				retangulo.deadlineBool = false;
-				listaDeRetangulosFinal.push(retangulo);
-			}
+            } else {
+                retangulo.deadlineBool = false;
+                listaDeRetangulosFinal.push(retangulo);
+            }
         } else
             listaDeRetangulosFinal.push(retangulo);
     })
@@ -213,7 +213,7 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
 }
 
 // Função para calcular o tempo médio
-const findavgTimeEDF = (listaDeProcessos, quantum, over) => {
+const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
     let quantidadeDeProcessos = listaDeProcessos.length;
     let total_wt = 0,
         total_tat = 0;
