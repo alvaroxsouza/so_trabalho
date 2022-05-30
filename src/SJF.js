@@ -1,5 +1,6 @@
 // Test Setup
 import { Processo } from "./Processo.js";
+import { Retangulo } from "./Retangulo.js";
 
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
@@ -32,12 +33,7 @@ const findWaitingTime = (listaDeProcessos) => {
     //Loop de execução
     while (1) {
         let vetorAuxiliar = []; //Vetor para ordenar pelo tempo de execução
-
-        let retangulo = {
-            id: -1,
-            tempoInicial: 0,
-            tempoFinal: 0
-        }
+        let retangulo =  new Retangulo();
 
         for (let i = 0; i < quantidadeDeProcessos; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
             if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].tempoDeChegada <= tempoCorrente) {

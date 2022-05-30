@@ -1,11 +1,11 @@
 class Retangulo {
-    constructor(id = -1, tempoInicial = 0, sobrecarga = false) {
+    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, isDeadline = false, deadline = -1) {
         this.id = id,
         this.tempoInicial = tempoInicial,
-        this.tempoFinal = 0,
+        this.tempoFinal = tempoFinal,
         this.sobrecarga = sobrecarga,
-        this.isDeadline = false,
-        this.deadline = -1
+        this.isDeadline = isDeadline,
+        this.deadline = deadline
     }
 
     getId() {
