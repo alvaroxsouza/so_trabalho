@@ -148,22 +148,16 @@ const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
 }
 
 // Função para calcular o tempo médio
-const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
+const findavgTimeRR = (listaDeProcessos, quantum, over) => {
     let quantidadeDeProcessos = listaDeProcessos.length;
 
     let total_wt = 0,
         total_tat = 0;
 
-
-    console.log(listaDeProcessos)
-    console.log(quantum)
-    console.log(over)
-
     // Função para encontrar o tempo de espera de todos os processos
     let retornoWt = findWaitingTime(listaDeProcessos, quantum, over);
     let priorityEndline = retornoWt.priorityEndline;
     let listaDeRetangulos = retornoWt.listaDeRetangulos;
-    console.log(listaDeRetangulos)
 
     // Função para encontrar turn around time de todos os processos
     findTurnAroundTime(quantidadeDeProcessos, priorityEndline);
@@ -182,5 +176,31 @@ const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
 
     return valorWtTat;
 }
+
+function main() {
+    let n = 3;
+
+    let quantum = 2;
+    let over = 1;
+
+    var teste = new Processo(1, 0, 4);
+    var teste2 = new Processo(2, 2, 6);
+    var teste3 = new Processo(3, 4, 7);
+
+    var listaDeProcessos = new Array(n).fill(0);
+    listaDeProcessos[0] = teste;
+    listaDeProcessos[1] = teste2;
+    listaDeProcessos[2] = teste3;
+
+    let retorno = findavgTimeRR(listaDeProcessos, quantum, over);
+    console.log("Lista de retângulos:")
+    console.log(retorno.listaDeRetangulos)
+    console.log("TAT:")
+    console.log(retorno.Tat);
+    console.log("WT:")
+    console.log(retorno.Wt);
+}
+
+main();
 
 export { findavgTimeRR }

@@ -5,9 +5,9 @@ import { GUI } from 'GUI';
 import { listaDeProcessosFIFO } from './FIFO.js';
 import { Processo } from './Processo.js';
 import { SistemaInput } from './SistemaInput.js';
-import { findavgTimeEDF } from './EDF.js';
-import { findavgTimeRR } from './RR.js';
 import { findavgTimeSJF } from './SJF.js';
+import { findavgTimeRR } from './RR.js';
+import { findavgTimeEDF } from './EDF.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
@@ -82,10 +82,14 @@ function addProcesso() {
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
     const processoCorrente = new Processo(quantidadeDeProcessos - 1)
+    console.log(processoCorrente);
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-        .onChange((value) => { processoCorrente.setTempoDeExecucao(value); });
+        .onChange((value) => {
+            processoCorrente.setTempoDeExecucao(value);
+            processoCorrente.setTempoDeExecucaoAtual(value);
+        });
     processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setDeadline(value); });
     listaDeProcessos.push(processoCorrente)
@@ -100,7 +104,6 @@ function removeProcesso() {
 }
 
 function executaAlgoritmoDeEscalonamento(value) {
-    let obj;
     switch (value) {
         case "FIFO":
             if (listaDeProcessos.length > 0) {
@@ -109,19 +112,21 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "Round-Robin":
             if (listaDeProcessos.length > 0) {
-                obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
-                listaDeRetangulos = obj.listaRetangulos;
+                let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                console.log(obj.listaDeRetangulos)
+                listaDeRetangulos = obj.listaDeRetangulos;
             }
             break;
         case "EDF":
             if (listaDeProcessos.length > 0) {
-                obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
             }
             break;
         case "SJF":
             if (listaDeProcessos.length > 0) {
-                obj = findavgTimeSJF(listaDeProcessos);
+                console.log(listaDeProcessos)
+                let obj = findavgTimeSJF(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
             }
             break;
@@ -134,16 +139,30 @@ function executaAlgoritmoDeEscalonamento(value) {
 function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
     velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 1000000);
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
+
+    let idAnterior;
+
     if (velocidadeAtual <= tempoFinal) {
         const tamanhoDoRetangulo = 2;
         const quantidadeDeAlturaDosRetangulos = 2;
 
         const posicaoInicialX = tempoInicial;
-        const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
-        const posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
+        let posicaoMinY, posicaoMaxY;
+
+
+        if (numeroDoProcesso >= 0) {
+            posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
+            posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
+        } else {
+            if (idAnterior) {
+                posicaoMinY = Math.round(idAnterior * tamanhoDoRetangulo);
+                posicaoMaxY = Math.round(idAnterior * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
+            }
+        }
+        console.log(posicaoMinY);
+        console.log(posicaoMaxY);
 
         const verticesTriangulo = [];
-
         verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
         verticesTriangulo.push(velocidadeAtual, posicaoMinY, 0.0);
         verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
@@ -170,6 +189,7 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempo
             }
         }
     }
+    idAnterior = numeroDoProcesso;
 }
 
 function mostrarTextoDeVariaveis(text, value, interval = 0) {
@@ -208,7 +228,11 @@ function render() {
         listaDeRetangulos.forEach((retangulo) => {
             i++;
             if (retangulo) {
-                desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal);
+                if (retangulo.id < 0) {
+                    desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
+                } else {
+                    desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal);
+                }
                 if (podeEscrever) {
                     mostrarTextoDeVariaveis("TurnAround", turnAround);
                     mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime, 3);
