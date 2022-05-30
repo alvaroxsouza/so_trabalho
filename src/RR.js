@@ -44,7 +44,8 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                 let retangulo = {
                         id: priorityEndline[i].id,
                         tempoInicial: tempoCorrente,
-                        tempoFinal: 0
+                        tempoFinal: 0,
+                        sobrecarga: false
                     }
                     // Se o tempo de execução de um processo for maior que 0
                     // então precisa processar mais
@@ -57,9 +58,11 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 
                     if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
                         var retanguloSobrecarga = { //retangulo para imprimir sobrecarga
-                            id: -1,
+                            id: priorityEndline[i].id,
                             tempoInicial: 0,
-                            tempoFinal: 0
+                            tempoFinal: 0,
+                            sobrecarga: true
+
                         }
 
                         // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
