@@ -218,11 +218,11 @@ function numeracaoDeEixos(value, interval) {
     loader.load('src/helvetiker_regular.typeface.json', function(font) {
         const textGeo = new TextGeometry(textoDeApresentacao, {
             font: font,
-            size: 0.5,
-            height: 0.02,
+            size: 0.4,
+            height: 0.001,
             curveSegments: 12,
             bevelThickness: 0.1,
-            bevelSize: 0.01,
+            bevelSize: 0.001,
             bevelEnabled: true
         });
 
@@ -233,8 +233,8 @@ function numeracaoDeEixos(value, interval) {
         textMesh1.geometry = textGeo;
         textMesh1.material = materials;
 
-        textMesh1.position.x = interval;
-        textMesh1.position.y = 0;
+        textMesh1.position.x = interval - 0.3;
+        textMesh1.position.y = -0.7;
     })
 
     scene.add(textMesh1);
