@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { FontLoader } from 'FontLoader';
 import { TextGeometry } from 'TextGeometry';
 import { GUI } from 'GUI';
+import { PointerLockControls } from 'PointerLockControls';
 import { listaDeProcessosFIFO } from './FIFO.js';
 import { Processo } from './Processo.js';
 import { SistemaInput } from './SistemaInput.js';
@@ -15,12 +16,10 @@ const LIMITE_INFERIOR = 0;
 const LARGURA = 1200;
 const ALTURA = 600;
 
-const ESPAÇO_ESQUERDA = -180;
-const ESPAÇO_BAIXO = -40;
-const gui = new GUI({ name: "Escalonamento", width: 400 })
+const gui = new GUI({ name: "Escalonamento", width: 200 })
 
 /* Configurações da renderização */
-let scene, renderer, camera, axesHelper;
+let scene, renderer, camera, axesHelper, controleDaCamera;
 let podeEscrever = false,
     flag = false;
 var velocidadeDaAnimacao = 0.001;
@@ -233,6 +232,25 @@ function render() {
     renderer.render(scene, camera);
 }
 
+function controle(event) {
+    if (controleDaCamera) {
+        console.log(controleDaCamera);
+        if (event.code == 'KeyW') {
+            controleDaCamera.moveForward(10);
+        }
+        if (event.code == 'KeyS') {
+            controleDaCamera.moveForward(-10);
+        }
+        if (event.code == 'KeyA') {
+            controleDaCamera.moveRight(-10);
+        }
+        if (event.code == 'KeyD') {
+            controleDaCamera.moveRight(10);
+        }
+    }
+
+}
+
 function iniciar() {
     if (scene.children.length > 2) {
         for (let i = scene.children.length - 1; i >= 62; i--) {
@@ -250,20 +268,29 @@ function iniciarCena() {
     const element = document.getElementById('canvas-three');
     element.appendChild(renderer.domElement);
 
-    const width = LARGURA;
-    const height = ALTURA;
-
-    renderer.setSize(width, height);
+    document.addEventListener('keydown', controle, false);
 
     const ESQUERDA_CAMERA = -5;
     const DIREITA_CAMERA = 30;
     const CIMA_CAMERA = 40;
     const BAIXO_CAMERA = -1;
-
+    const width = LARGURA;
+    const height = ALTURA;
 
     camera = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, width / height, 0);
+    controleDaCamera = new PointerLockControls(camera, renderer.domElement);
 
+    if (controleDaCamera) {
+        element.addEventListener(
+            'click',
+            function() {
+                controleDaCamera.lock()
+            }, false
+        )
+    }
+    renderer.setSize(width, height);
     scene = new THREE.Scene();
+
     for (let i = 0; i < 40; i += 1) {
         axesHelper = new THREE.AxesHelper(1000);
         axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
