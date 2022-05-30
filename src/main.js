@@ -217,7 +217,7 @@ function render() {
         listaDeRetangulos.forEach((retangulo) => {
             i++;
             if (retangulo) {
-                if (retangulo.sobrecarga) {
+                if (retangulo.isSobrecarga) {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
                 } else {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal);
