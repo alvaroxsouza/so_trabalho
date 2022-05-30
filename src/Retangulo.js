@@ -1,11 +1,11 @@
 class Retangulo {
-    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, isDeadline = false, deadline = -1) {
+    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, deadlineBool = false, deadline = -1) {
         this.id = id,
-        this.tempoInicial = tempoInicial,
-        this.tempoFinal = tempoFinal,
-        this.sobrecarga = sobrecarga,
-        this.isDeadline = isDeadline,
-        this.deadline = deadline
+            this.tempoInicial = tempoInicial,
+            this.tempoFinal = tempoFinal,
+            this.sobrecarga = sobrecarga,
+            this.deadlineBool = deadlineBool,
+            this.deadline = deadline
     }
 
     getId() {
@@ -40,12 +40,12 @@ class Retangulo {
         this.sobrecarga = sobrecarga;
     }
 
-    isDeadline() {
-        return this.isDeadline;
+    isDeadlineBool() {
+        return this.deadlineBool;
     }
 
-    setIsDeadline(isDeadline) {
-        this.isDeadline = isDeadline;
+    setIsDeadlineBool(deadlineBool) {
+        this.deadlineBool = deadlineBool;
     }
 
     getDeadline() {

@@ -34,7 +34,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
     while (1) {
         vetorAuxiliar = [];
 
-        let retangulo =  new Retangulo();
+        let retangulo = new Retangulo();
 
         for (let i = 0; i < quantidadeDeProcessos; i++) { //Pega os processos que podem ser executados e guarda no vetor auxiliar
             if (vetorCopiaProcessos[i] != 0 && vetorCopiaProcessos[i].tempoDeChegada <= tempoCorrente) {
@@ -193,14 +193,14 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
         if (retangulo.deadline > -1) {
             //Deadline divide o retangulo
             if ((retangulo.tempoFinal >= retangulo.deadline) && (retangulo.tempoInicial < retangulo.deadline)) {
-                let retangulo1 =  new Retangulo(retangulo.id, retangulo.tempoInicial, false, retangulo.deadline, false, retangulo.deadline);
-                let retangulo2 =  new Retangulo(retangulo.id, retangulo.deadline, false, retangulo.tempoFinal, true, retangulo.deadline);
+                let retangulo1 = new Retangulo(retangulo.id, retangulo.tempoInicial, false, retangulo.deadline, false, retangulo.deadline);
+                let retangulo2 = new Retangulo(retangulo.id, retangulo.deadline, false, retangulo.tempoFinal, true, retangulo.deadline);
                 if (retangulo1.tempoInicial != retangulo1.tempoFinal)
                     listaDeRetangulosFinal.push(retangulo1);
                 if (retangulo2.tempoInicial != retangulo2.tempoFinal)
                     listaDeRetangulosFinal.push(retangulo2);
             } else if (retangulo.tempoInicial >= retangulo.deadline) {
-                retangulo.isDeadline = true;
+                retangulo.deadlineBool = true;
                 listaDeRetangulosFinal.push(retangulo);
             }
         } else

@@ -89,7 +89,9 @@ function addProcesso() {
             processoCorrente.setTempoDeExecucaoAtual(value);
         });
     processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
-        .onChange((value) => { processoCorrente.setDeadline(value); });
+        .onChange((value) => {
+            processoCorrente.setDeadline(value + processoCorrente.getTempoDeChegada(value));
+        });
     listaDeProcessos.push(processoCorrente)
 }
 
@@ -180,7 +182,7 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempo
     }
 }
 
-function mostrarTextoDeVariaveis(text, value, interval = 0) {
+function mostrarTextoDeVariaveis(text = "", value, interval = 0) {
     const textoDeApresentacao = text + ": " + parseFloat(value);
     const loader = new FontLoader();
     let textMesh1 = new THREE.Mesh();
@@ -209,6 +211,35 @@ function mostrarTextoDeVariaveis(text, value, interval = 0) {
     scene.add(textMesh1);
 }
 
+function numeracaoDeEixos(value, interval) {
+    const textoDeApresentacao = "" + value;
+    const loader = new FontLoader();
+    let textMesh1 = new THREE.Mesh();
+    loader.load('src/helvetiker_regular.typeface.json', function(font) {
+        const textGeo = new TextGeometry(textoDeApresentacao, {
+            font: font,
+            size: 0.5,
+            height: 0.02,
+            curveSegments: 12,
+            bevelThickness: 0.1,
+            bevelSize: 0.01,
+            bevelEnabled: true
+        });
+
+        textGeo.computeBoundingBox();
+
+        const materials = new THREE.MeshBasicMaterial({ color: 0xaa0000, wireframe: true });
+
+        textMesh1.geometry = textGeo;
+        textMesh1.material = materials;
+
+        textMesh1.position.x = interval;
+        textMesh1.position.y = 0;
+    })
+
+    scene.add(textMesh1);
+}
+
 function render() {
     requestAnimationFrame(render);
     let i = 0;
@@ -216,8 +247,10 @@ function render() {
         listaDeRetangulos.forEach((retangulo) => {
             i++;
             if (retangulo) {
-                if (retangulo.isSobrecarga) {
+                if (retangulo.isSobrecarga()) {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
+                } else if (retangulo.isDeadlineBool()) {
+                    desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xAAAAAA);
                 } else {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal);
                 }
@@ -280,22 +313,25 @@ function iniciarCena() {
     camera = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, width / height, 0);
     controleDaCamera = new PointerLockControls(camera, renderer.domElement);
 
-    if (controleDaCamera) {
+    /* if (controleDaCamera) {
         element.addEventListener(
             'click',
             function() {
                 controleDaCamera.lock()
             }, false
         )
-    }
+    } */
     renderer.setSize(width, height);
     scene = new THREE.Scene();
 
+    let numeroEixo = 0;
     for (let i = 0; i < 40; i += 1) {
         axesHelper = new THREE.AxesHelper(1000);
         axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
         axesHelper.position.x = i;
+        numeracaoDeEixos(i, numeroEixo)
         scene.add(axesHelper);
+        numeroEixo += 1;
     }
     scene.add(camera);
     renderer.render(scene, camera);
