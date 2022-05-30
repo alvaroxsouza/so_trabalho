@@ -24,7 +24,7 @@ function listaDeProcessosFIFO(listaDeProcessos) {
             }
             tempoCorrente += processo.tempoDeExecucao;
             processo.turnAround = tempoCorrente - processo.tempoDeChegada;
-            processo.tempoDeEspera = processo.turnAround - processo.tempoDeChegada;
+            processo.tempoDeEspera =  processo.turnAround - processo.tempoDeExecucao;
             retangulo.tempoFinal = tempoCorrente;
             listaDeRetangulos.push(retangulo)
         }
@@ -37,8 +37,8 @@ function listaDeProcessosFIFO(listaDeProcessos) {
             }
             tempoCorrente += processo.tempoDeExecucao;
             processo.turnAround = tempoCorrente - processo.tempoDeChegada;
-            processo.tempoDeEspera = processo.turnAround - processo.tempoDeChegada;
-
+            processo.tempoDeEspera = processo.turnAround - processo.tempoDeExecucao;
+           
             retangulo.tempoFinal = tempoCorrente;
             listaDeRetangulos.push(retangulo)
         }
@@ -50,13 +50,16 @@ function findTurnAroundTime(listaDeProcessos) {
     let listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
 
     let total = 0;
+    let totalWT = 0;
     listaDeProcessos.forEach((processo) => {
         total += processo.turnAround;
+        totalWT += processo.tempoDeEspera;
     })
 
     let retorno = {
 		listaDeRetangulos: listaDeRetangulos,
-        Tat: (total / listaDeProcessos.length)
+        Tat: (total / listaDeProcessos.length),
+        Wt: (totalWT / listaDeProcessos.length)
 	}
 
 	return retorno;
@@ -75,8 +78,12 @@ function main() {
 	listaDeProcessos[2] = teste3;
 
 	let retorno = findTurnAroundTime(listaDeProcessos);
+    console.log("Lista de retângulos:")
 	console.log(retorno.listaDeRetangulos)
+    console.log("TAT:")
 	console.log(retorno.Tat);
+    console.log("WT:")
+	console.log(retorno.Wt);
 }
 
 main();
