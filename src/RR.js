@@ -176,3 +176,29 @@ const findavgTime = (listaDeProcessos, quantum, over) => {
 
 	return valorWtTat;
 }
+
+function main() {
+	let n = 3;
+
+	let quantum = 2;
+	let over = 1;
+
+	var teste = new Processo(1, 0, 4);
+	var teste2 = new Processo(2, 2, 6);
+	var teste3 = new Processo(3, 4, 7);
+
+	var listaDeProcessos = new Array(n).fill(0);
+	listaDeProcessos[0] = teste;
+	listaDeProcessos[1] = teste2;
+	listaDeProcessos[2] = teste3;
+
+	let retorno = findavgTime(listaDeProcessos, quantum, over);
+	console.log("Lista de retângulos:")
+	console.log(retorno.listaDeRetangulos)
+	console.log("TAT:")
+	console.log(retorno.Tat);
+	console.log("WT:")
+	console.log(retorno.Wt);
+}
+
+main();
