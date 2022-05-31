@@ -1,11 +1,13 @@
 class Retangulo {
-    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, deadlineBool = false, deadline = -1) {
-        this.id = id,
-            this.tempoInicial = tempoInicial,
-            this.tempoFinal = tempoFinal,
-            this.sobrecarga = sobrecarga,
-            this.deadlineBool = deadlineBool,
-            this.deadline = deadline
+    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, deadlineBool = false, deadline = -1, novaMatrix = false, matrix = "") {
+        this.id = id;
+        this.tempoInicial = tempoInicial;
+        this.tempoFinal = tempoFinal;
+        this.sobrecarga = sobrecarga;
+        this.deadlineBool = deadlineBool;
+        this.deadline = deadline;
+        this.novaMatrix = novaMatrix;
+        this.matrix = matrix;
     }
 
     getId() {

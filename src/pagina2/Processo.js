@@ -1,5 +1,5 @@
 class Processo {
-    constructor(id, tempoDeChegada = 0, tempoDeExecucao = 0, deadline = 0) {
+    constructor(id, tempoDeChegada = 0, tempoDeExecucao = 0, deadline = 0, paginas = "0") {
         this.id = id;
         this.tempoDeChegada = tempoDeChegada;
         this.tempoDeExecucao = tempoDeExecucao;
@@ -9,6 +9,8 @@ class Processo {
         this.tempoDeEspera = 0;
         this.turnAround = 0;
         this.tempoQueComecou = 0;
+        this.paginas = paginas.substring(0,10);
+        this.posicoesPaginas = new Array(this.paginas.length).fill('-1');
     }
 
     getId() {
@@ -73,6 +75,22 @@ class Processo {
 
     setDeadline(deadline) {
         this.deadline = deadline;
+    }
+
+    getPaginas() {
+        return this.paginas;
+    }
+
+    setPaginas(paginas) {
+        this.paginas = paginas;
+    }
+
+    getPosicoesPaginas() {
+        return this.posicoesPaginas;
+    }
+
+    setPosicoesPaginas(posicoesPaginas) {
+        this.posicoesPaginas = posicoesPaginas;
     }
 }
 export { Processo };
