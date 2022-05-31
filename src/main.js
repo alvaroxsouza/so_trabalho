@@ -140,38 +140,48 @@ function executaAlgoritmoDeEscalonamento(value) {
     }
 }
 
+function criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMaxY, color) {
+    const verticesTriangulo = [];
+    verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+    verticesTriangulo.push(velocidadeAtual, posicaoMinY, 0.0);
+    verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
+    verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
+    verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
+    verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+
+    const geometry = new THREE.BufferGeometry();
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
+
+    const material = new THREE.MeshBasicMaterial({
+        color: color,
+        wireframe: false
+    });
+    const retang = new THREE.Mesh(geometry, material);
+    return retang
+}
+
+let retangulo;
+let quantidadeDeRetangulosAdicionados = 0;
+let podeApagarRetangulo = true;
+
 function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
-    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 100000 : -(velocidadeDaAnimacao / 1000000);
+    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 1000000);
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
 
     if (velocidadeAtual <= tempoFinal) {
+        podeApagarRetangulo = true;
         const tamanhoDoRetangulo = 2;
         const quantidadeDeAlturaDosRetangulos = 2;
-
         const posicaoInicialX = tempoInicial;
-
         const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
         const posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
 
-        const verticesTriangulo = [];
-        verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
-        verticesTriangulo.push(velocidadeAtual, posicaoMinY, 0.0);
-        verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
-        verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
-        verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
-        verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+        retangulo = criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMaxY, color);
 
-        const geometry = new THREE.BufferGeometry();
-
-        geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3));
-
-        const material = new THREE.MeshBasicMaterial({
-            color: color,
-            wireframe: false
-        });
-        const triangulo = new THREE.Mesh(geometry, material);
-        scene.add(triangulo);
+        scene.add(retangulo);
     } else {
+        podeApagarRetangulo = false;
         const ultimoRetangulo = listaDeRetangulos[listaDeProcessos.length - 1];
         if (ultimoRetangulo && !flag) {
             if (tempoFinal == listaDeRetangulos[listaDeProcessos.length - 1].tempoFinal) {
@@ -242,10 +252,8 @@ function numeracaoDeEixos(value, interval) {
 
 function render() {
     requestAnimationFrame(render);
-    let i = 0;
     if (listaDeRetangulos) {
         listaDeRetangulos.forEach((retangulo) => {
-            i++;
             if (retangulo) {
                 if (retangulo.isSobrecarga()) {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
@@ -285,9 +293,10 @@ function controle(event) {
 
 function limparCena() {
     if (scene.children.length > 81) {
-        for (let i = scene.children.length - 1; i >= 82; i--) {
+        for (let i = scene.children.length - 1; i >= 81; i--) {
             scene.remove(scene.children[i]);
             flag = false;
+            console.log(i)
         }
     }
 }
@@ -326,6 +335,8 @@ function iniciarCena() {
     } */
     renderer.setSize(width, height);
     scene = new THREE.Scene();
+
+    limparCena()
 
     let numeroEixo = 0;
     for (let i = 0; i < 40; i += 1) {
