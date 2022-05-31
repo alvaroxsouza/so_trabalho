@@ -332,7 +332,7 @@ function iniciarCena() {
         axesHelper.position.x = i;
         numeracaoDeEixos(i, numeroEixo)
         scene.add(axesHelper);
-        numeroEixo += 1;
+        numeroEixo++;
     }
 
     console.log(scene);
