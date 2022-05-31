@@ -12,9 +12,17 @@ import { findavgTimeEDF } from './EDF.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
+const NUMERO_MAXIMO_TEMPO = 100;
 
 const LARGURA = 1200;
 const ALTURA = 600;
+
+const ESQUERDA_CAMERA = -5;
+const DIREITA_CAMERA = 30;
+const CIMA_CAMERA = 40;
+const BAIXO_CAMERA = -1;
+const width = LARGURA;
+const height = ALTURA;
 
 const gui = new GUI({ name: "Escalonamento", width: 200 })
 
@@ -161,27 +169,19 @@ function criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMax
     return retang
 }
 
-let retangulo;
-let quantidadeDeRetangulosAdicionados = 0;
-let podeApagarRetangulo = true;
-
 function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
     velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 1000000);
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
 
     if (velocidadeAtual <= tempoFinal) {
-        podeApagarRetangulo = true;
         const tamanhoDoRetangulo = 2;
         const quantidadeDeAlturaDosRetangulos = 2;
         const posicaoInicialX = tempoInicial;
         const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
         const posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
 
-        retangulo = criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMaxY, color);
-
-        scene.add(retangulo);
+        scene.add(criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMaxY, color));
     } else {
-        podeApagarRetangulo = false;
         const ultimoRetangulo = listaDeRetangulos[listaDeProcessos.length - 1];
         if (ultimoRetangulo && !flag) {
             if (tempoFinal == listaDeRetangulos[listaDeProcessos.length - 1].tempoFinal) {
@@ -276,23 +276,27 @@ function render() {
 function controle(event) {
     if (controleDaCamera) {
         if (event.code == 'KeyW') {
-            controleDaCamera.moveForward(10);
+            camera.position.y += 5;
         }
         if (event.code == 'KeyS') {
-            controleDaCamera.moveForward(-10);
+            if (camera.position.y > -5) {
+                camera.position.y -= 5;
+            }
         }
         if (event.code == 'KeyA') {
-            controleDaCamera.moveRight(-10);
+            if (camera.position.x > -5) {
+                camera.position.x -= 5;
+            }
         }
         if (event.code == 'KeyD') {
-            controleDaCamera.moveRight(10);
+            camera.position.x += 5;
         }
+        camera.updateProjectionMatrix()
     }
-
 }
 
 function limparCena() {
-    if (scene.children.length > 81) {
+    if (scene.children.length > 141) {
         for (let i = scene.children.length - 1; i >= 81; i--) {
             scene.remove(scene.children[i]);
             flag = false;
@@ -313,33 +317,29 @@ function iniciarCena() {
     const element = document.getElementById('canvas-three');
     element.appendChild(renderer.domElement);
 
-    document.addEventListener('keydown', controle, false);
+    renderer.setSize(width, height);
 
-    const ESQUERDA_CAMERA = -5;
-    const DIREITA_CAMERA = 30;
-    const CIMA_CAMERA = 40;
-    const BAIXO_CAMERA = -1;
-    const width = LARGURA;
-    const height = ALTURA;
+    document.addEventListener('keydown', controle, false);
 
     camera = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, width / height, 0);
     controleDaCamera = new PointerLockControls(camera, renderer.domElement);
 
-    /* if (controleDaCamera) {
+    if (controleDaCamera) {
         element.addEventListener(
             'click',
             function() {
-                controleDaCamera.lock()
+                controleDaCamera.unlock();
             }, false
         )
-    } */
+    }
     renderer.setSize(width, height);
     scene = new THREE.Scene();
 
     limparCena()
 
+
     let numeroEixo = 0;
-    for (let i = 0; i < 40; i += 1) {
+    for (let i = 0; i < NUMERO_MAXIMO_TEMPO; i++) {
         axesHelper = new THREE.AxesHelper(1000);
         axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
         axesHelper.position.x = i;
