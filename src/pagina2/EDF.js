@@ -1,5 +1,6 @@
 import { Processo } from "./Processo.js";
 import { Retangulo } from "./Retangulo.js";
+import { LRU } from "./LRUPaginacao-SJF.js";
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
  * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
@@ -8,7 +9,7 @@ import { Retangulo } from "./Retangulo.js";
  */
 
 // Função que calcula o tempo de espera de cada processo
-const findWaitingTime = (listaDeProcessos, quantum, overload) => {
+const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     let quantidadeDeProcessos = listaDeProcessos.length;
     let tempoCorrente = 0; // Current time
     let vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
@@ -62,10 +63,29 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
         if (vetorPrincipal && vetorPrincipal.length > 0) {
             if (vetorPrincipal[0].tempoDeExecucaoAtual > 0) {
                 retangulo.id = vetorPrincipal[0].id;
+                //Entra na memória virtual
+                //Caso a memória virtual esteja cheia, o processo é ignorado
+                let index = temEspacoNoDisco(controle.vetorDisco);
+                let control = false;
+                if(index != -1){ //tem espaço no disco
+                    for(let i=0; i < controle.vetorDisco.length; i++){
+                        if(controle.vetorDisco[i] == vetorPrincipal[0].id){
+                            control = true;
+                        }
+                    } 
+                    if(!control){
+                        controle.vetorDisco[index] = vetorPrincipal[0].id;
+                    }
+                }
+
+                else
+                    return listaDeRetangulos;
+
                 //Se o tempo de execução restante for maior que o quantum
                 if (vetorPrincipal[0].tempoDeExecucaoAtual > quantum) {
                     let retanguloSobrecarga = new Retangulo(vetorPrincipal[0].id, 0, true);
 
+                    
                     retangulo.tempoInicial = tempoCorrente;
                     // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
                     tempoCorrente += quantum;
@@ -84,12 +104,44 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
                     // Adiciona o retangulo do processo atual e do de sobrecarga
                     listaDeRetangulos.push(retangulo);
                     listaDeRetangulos.push(retanguloSobrecarga);
+
+                    if(!control){
+                        preenchePaginasNaMemoria(vetorPrincipal[0], controle);
+                        let matrix = stringMatrix(controle);
+                        retangulo.novaMatrix = true;
+                        retangulo.matrix = matrix;
+                        
+                        console.log("Tempo Atual: " + retangulo.tempoInicial)
+                        console.log(retangulo.matrix)
+                        console.log("Disco:")
+                        console.log(controle.vetorDisco)
+                        console.log("Paginas:")
+                        console.log(controle.paginas)
+                    }
+
                 }
 
                 //Se o tempo de execução restante for menor ou igual ao quantum
                 //o último quantum desse processo será executado
                 else {
+
                     retangulo.tempoInicial = tempoCorrente;
+
+                    if(!control){
+                        preenchePaginasNaMemoria(vetorPrincipal[0], controle);
+                        let matrix = stringMatrix(controle);
+                        retangulo.novaMatrix = true;
+                        retangulo.matrix = matrix;
+                        
+    
+                        console.log("Tempo Atual: " + retangulo.tempoInicial)
+                        console.log(retangulo.matrix)
+                        console.log("Disco:")
+                        console.log(controle.vetorDisco)
+                        console.log("Paginas:")
+                        console.log(controle.paginas)
+                    }
+
                     //Aumenta o valor do tempo pelo tempo de execução que falta no processo
                     tempoCorrente = tempoCorrente + vetorPrincipal[0].tempoDeExecucaoAtual;
 
@@ -108,8 +160,12 @@ const findWaitingTime = (listaDeProcessos, quantum, overload) => {
 
                     //O processo foi totalmente executado, então seu tempo de execução restante é 0
                     vetorPrincipal[0].tempoDeExecucaoAtual = 0;
+                    
+
+                    removePaginasDaMemoria(vetorPrincipal[0], controle);
                     //Retira o processo executado da fila
                     vetorPrincipal.shift();
+
                     //Retira os elementos nulos do vetor
                     if (vetorPrincipal) {
                         vetorPrincipal = vetorPrincipal.filter(function(el) {
@@ -218,8 +274,25 @@ const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
     let total_wt = 0,
         total_tat = 0;
 
+    let matrix = new Array(10);
+    for(let i = 0 ; i < 10 ; i++){
+        matrix[i] = new Array(5).fill('-1');
+    }
+
+    let controle = {
+        matrixMemoria: matrix,
+        espacosVaziosMatrixMemoria: 50,
+        //Vetor de disco (memória virtual) - capacidade de 12 processos
+        //Quando um processo chega, ele entra no disco
+        vetorDisco: new Array(12).fill(-1),
+        //Vetor auxiliar (tabela) de páginas com 10 posições
+        //Quando é a vez dele de executar, testa se as páginas estão no vetor
+        paginas: [] //sempre se adiciona com unshift
+    }
+
+
     // Função para encontrar o tempo de espera de todos os processos
-    let listaDeRetangulos = findWaitingTime(listaDeProcessos, quantum, over);
+    let listaDeRetangulos = findWaitingTime(listaDeProcessos, quantum, over, controle);
 
     // Função para encontrar o TAT de todos os processos
     findTurnAroundTime(listaDeProcessos, quantidadeDeProcessos);
@@ -240,7 +313,95 @@ const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
         Tat: (total_tat / quantidadeDeProcessos)
     }
 
-    return retorno;
+    
+
+    return retorno;  
+}
+
+function preenchePaginasNaMemoria(processo, controle) {
+    //Caso exista posições suficientes para todas as páginas
+    if (controle.espacosVaziosMatrixMemoria >= processo.paginas.length) {
+        trataPaginas(processo, controle);
+        let count = 0; //Controle para a página atual
+        for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
+            for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
+                if (controle.matrixMemoria[i][j] == '-1') { //Se a poisção estiver livre
+                    let pagina = {
+                        valor: processo.paginas[count],
+                        processo: processo.id
+                    }
+                    controle.matrixMemoria[i][j] = pagina; //Guarda o valor da página
+                    let posicao = { //Objeto com a posição da página na matrix
+                        i: i,
+                        j: j
+                    }
+                    processo.posicoesPaginas[count] = posicao; //Guarda a posição no processo
+                    count++; //Passa pra próxima página
+                    controle.espacosVaziosMatrixMemoria--; //Diminui em 1 o número de espaços livres
+                    if (count == processo.paginas.length) //Se todas as páginas foram guardadas
+                        return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function trataPaginas(processo, controle){
+    let paginasParaTroca = [];
+    let qtdDePaginas = processo.paginas.length;
+    for(let i = 0 ; i < qtdDePaginas ; i++){
+        if(!controle.paginas.includes(processo.paginas[i])){
+            if(controle.paginas.length == 10)
+                paginasParaTroca.push(processo.paginas[i]);
+            else if(controle.paginas.length < 10)
+                controle.paginas.unshift(processo.paginas[i]);
+        }    
+    }
+    //console.log(controle.paginas)
+    if(paginasParaTroca.length > 0){
+        for(let i = 0 ; i < paginasParaTroca.length ; i++){
+            LRU(controle.paginas, paginasParaTroca[i], 10);
+            //console.log(controle.paginas)
+        }
+    }
+}
+
+function removePaginasDaMemoria(processo, controle) {
+    let quantidadeDePaginas = processo.paginas.length;
+    for(let count=0 ; count < quantidadeDePaginas ; count++){
+        let i = processo.posicoesPaginas[count].i;
+        let j = processo.posicoesPaginas[count].j;
+        controle.matrixMemoria[i][j] = '-1';
+        controle.espacosVaziosMatrixMemoria++;
+        processo.posicoesPaginas[count] = '-1';
+    }
+}
+
+function stringMatrix(controle) {
+    let matrix = "";
+    for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
+        for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
+            if(controle.matrixMemoria){
+                if(controle.matrixMemoria[i][j] != "-1"){
+                    matrix += "\xa0"
+                    matrix += ("\xa0" + controle.matrixMemoria[i][j].processo + " ");
+                }
+                else 
+                    matrix += ("\xa0" + controle.matrixMemoria[i][j] + " ");
+            }
+        }
+        matrix += "\n";
+    }
+    return matrix;
+}
+
+function temEspacoNoDisco(vetorDisco) {
+    for (let i = 0; i < vetorDisco.length ; i++){
+                if(vetorDisco[i] == -1)
+                    return i;
+    }
+    return -1;
 }
 
 function main() {
@@ -249,22 +410,25 @@ function main() {
     let quantum = 2;
     let over = 1;
 
-    var teste = new Processo(1, 0, 4, 10);
-    var teste2 = new Processo(2, 2, 6, 8);
-    var teste3 = new Processo(3, 4, 7, 10);
+    var teste = new Processo(1, 0, 4, 10, "ABCDEFGHIJ");
+    var teste2 = new Processo(2, 2, 6, 8, "MDFJD");
+    var teste3 = new Processo(3, 4, 7, 10, "ÇVCX976");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
 
-    let retorno = findavgTimeEDF(listaDeProcessos, quantum, over);
-    console.log("Lista de retângulos:")
-    console.log(retorno.listaDeRetangulos)
-    console.log("TAT:")
-    console.log(retorno.Tat);
-    console.log("WT:")
-    console.log(retorno.Wt);
+    let retorno = findavgTimeEDF(listaDeProcessos,quantum,over);
+
+  
+        
+    //console.log("Lista de retângulos:")
+    //console.log(retorno.listaDeRetangulos)
+    //console.log("TAT:")
+    //console.log(retorno.Tat);
+    //console.log("WT:")
+    //console.log(retorno.Wt);
 }
 
 main();
