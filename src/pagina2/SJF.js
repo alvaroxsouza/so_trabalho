@@ -1,6 +1,7 @@
 // Test Setup
 import { Processo } from "./Processo.js";
 import { Retangulo } from "./Retangulo.js";
+import { LRU } from "./LRUPaginacao-SJF.js";
 
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
@@ -10,7 +11,7 @@ import { Retangulo } from "./Retangulo.js";
  */
 
 // Função que calcula o tempo de espera de cada processo
-const findWaitingTime = (listaDeProcessos, memoria) => {
+const findWaitingTime = (listaDeProcessos, controle) => {
     let quantidadeDeProcessos = listaDeProcessos.length;
     let tempoCorrente = 0; // Current time
     let vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
@@ -60,9 +61,16 @@ const findWaitingTime = (listaDeProcessos, memoria) => {
         //Se existir processo na fila
         if (vetorPrincipal && vetorPrincipal.length > 0) {
             if (vetorPrincipal[0].tempoDeExecucaoAtual > 0) {
+                //Entra na memória virtual
+            //Caso a memória virtual esteja cheia, o processo é ignorado
+                let index = temEspacoNoDisco(controle.vetorDisco);
+                if(index != -1) //tem espaço no disco
+                    controle.vetorDisco[index] = vetorPrincipal[0].id;
+                else
+                    return listaDeRetangulos;
 
-                preenchePaginasNaMemoria(vetorPrincipal[0], memoria);
-                let matrix = stringMatrix(memoria);
+                preenchePaginasNaMemoria(vetorPrincipal[0], controle);
+                let matrix = stringMatrix(controle);
                 retangulo.novaMatrix = true;
                 retangulo.matrix = matrix;
 
@@ -82,7 +90,7 @@ const findWaitingTime = (listaDeProcessos, memoria) => {
                     }
                 }
 
-                removePaginasDaMemoria(vetorPrincipal[0], memoria);
+                removePaginasDaMemoria(vetorPrincipal[0], controle);
                 //Retira o processo executado da fila
                 vetorPrincipal.shift();
 
@@ -139,13 +147,19 @@ const findavgTimeSJF = (listaDeProcessos) => {
     for(let i = 0 ; i < 10 ; i++){
         matrix[i] = new Array(5).fill('-1');
     }
-    let memoria = {
+    let controle = {
         matrixMemoria: matrix,
-        espacosVazios: 50
+        espacosVaziosMatrixMemoria: 50,
+        //Vetor de disco (memória virtual) - capacidade de 12 processos
+        //Quando um processo chega, ele entra no disco
+        vetorDisco: new Array(12).fill(-1),
+        //Vetor auxiliar (tabela) de páginas com 10 posições
+        //Quando é a vez dele de executar, testa se as páginas estão no vetor
+        paginas: [] //sempre se adiciona com unshift
     }
 
     // Função para encontrar o tempo de espera de todos os processos
-    let listaDeRetangulos = findWaitingTime(listaDeProcessos, memoria);
+    let listaDeRetangulos = findWaitingTime(listaDeProcessos, controle);
 
     // Função para encontrar o TAT de todos os processos
     findTurnAroundTime(listaDeProcessos, quantidadeDeProcessos);
@@ -164,24 +178,34 @@ const findavgTimeSJF = (listaDeProcessos) => {
         Tat: (total_tat / quantidadeDeProcessos)
     }
 
+    console.log("Disco:")
+    console.log(controle.vetorDisco)
+    console.log("Paginas:")
+    console.log(controle.paginas)
+
     return retorno;
 }
 
-function preenchePaginasNaMemoria(processo, memoria) {
+function preenchePaginasNaMemoria(processo, controle) {
     //Caso exista posições suficientes para todas as páginas
-    if (memoria.espacosVazios >= processo.paginas.length) {
+    if (controle.espacosVaziosMatrixMemoria >= processo.paginas.length) {
+        trataPaginas(processo, controle);
         let count = 0; //Controle para a página atual
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
             for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
-                if (memoria.matrixMemoria[i][j] == -1) { //Se a poisção estiver livre
-                    memoria.matrixMemoria[i][j] = processo.paginas[count]; //Guarda o valor da página
+                if (controle.matrixMemoria[i][j] == '-1') { //Se a poisção estiver livre
+                    let pagina = {
+                        valor: processo.paginas[count],
+                        processo: processo.id
+                    }
+                    controle.matrixMemoria[i][j] = pagina; //Guarda o valor da página
                     let posicao = { //Objeto com a posição da página na matrix
                         i: i,
                         j: j
                     }
                     processo.posicoesPaginas[count] = posicao; //Guarda a posição no processo
                     count++; //Passa pra próxima página
-                    memoria.espacosVazios--; //Diminui em 1 o número de espaços livres
+                    controle.espacosVaziosMatrixMemoria--; //Diminui em 1 o número de espaços livres
                     if (count == processo.paginas.length) //Se todas as páginas foram guardadas
                         return true;
                 }
@@ -191,25 +215,48 @@ function preenchePaginasNaMemoria(processo, memoria) {
     return false;
 }
 
-function removePaginasDaMemoria(processo, memoria) {
+function trataPaginas(processo, controle){
+    let paginasParaTroca = [];
+    let qtdDePaginas = processo.paginas.length;
+    for(let i = 0 ; i < qtdDePaginas ; i++){
+        if(!controle.paginas.includes(processo.paginas[i])){
+            if(controle.paginas.length == 10)
+                paginasParaTroca.push(processo.paginas[i]);
+            else if(controle.paginas.length < 10)
+                controle.paginas.unshift(processo.paginas[i]);
+        }    
+    }
+    console.log(controle.paginas)
+    if(paginasParaTroca.length > 0){
+        for(let i = 0 ; i < paginasParaTroca.length ; i++){
+            LRU(controle.paginas, paginasParaTroca[i], 10);
+            console.log(controle.paginas)
+        }
+    }
+}
+
+function removePaginasDaMemoria(processo, controle) {
     let quantidadeDePaginas = processo.paginas.length;
     for(let count=0 ; count < quantidadeDePaginas ; count++){
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
-        memoria.matrixMemoria[i][j] = '-1';
-        memoria.espacosVazios++;
+        controle.matrixMemoria[i][j] = '-1';
+        controle.espacosVaziosMatrixMemoria++;
         processo.posicoesPaginas[count] = '-1';
     }
 }
 
-function stringMatrix(memoria) {
+function stringMatrix(controle) {
     let matrix = "";
     for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
         for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
-            if(memoria.matrixMemoria){
-                if(memoria.matrixMemoria[i][j] != "-1")
+            if(controle.matrixMemoria){
+                if(controle.matrixMemoria[i][j] != "-1"){
                     matrix += "\xa0"
-                matrix += ("\xa0" + memoria.matrixMemoria[i][j] + " ");
+                    matrix += ("\xa0" + controle.matrixMemoria[i][j].processo + " ");
+                }
+                else 
+                    matrix += ("\xa0" + controle.matrixMemoria[i][j] + " ");
             }
         }
         matrix += "\n";
@@ -217,12 +264,20 @@ function stringMatrix(memoria) {
     return matrix;
 }
 
+function temEspacoNoDisco(vetorDisco) {
+    for (let i = 0; i < vetorDisco.length ; i++){
+        if(vetorDisco[i] == -1)
+            return i;
+    }
+    return -1;
+}
+
 function main() {
     let n = 3;
 
-    var teste = new Processo(1, 0, 4, 0, "123456789102230230");
-    var teste2 = new Processo(2, 2, 6, 0, "12345");
-    var teste3 = new Processo(3, 4, 7, 0, "987654");
+    var teste = new Processo(1, 0, 4, 0, "ABCDEFGHIJ");
+    var teste2 = new Processo(2, 2, 6, 0, "MDFJD");
+    var teste3 = new Processo(3, 4, 7, 0, "ÇVCX976");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
@@ -230,14 +285,13 @@ function main() {
     listaDeProcessos[2] = teste3;
 
     let retorno = findavgTimeSJF(listaDeProcessos);
+
     retorno.listaDeRetangulos.forEach((retangulo) => {
-        console.log("Retângulo " + retangulo.id)
-        if(retangulo.novaMatrix)
-            console.log(retangulo.matrix)
+        console.log("Memória RAM com o processo " + retangulo.id)
+        console.log(retangulo.matrix)
     })
     //console.log("Lista de retângulos:")
     //console.log(retorno.listaDeRetangulos)
-
     console.log("TAT:")
     console.log(retorno.Tat);
     console.log("WT:")
