@@ -7,7 +7,7 @@ function listaDeProcessosFIFO(listaDeProcessos, memoria) {
 
     let listaDeRetangulos = [];
 
-    listaDeProcessos.sort(function (a, b) {
+    listaDeProcessos.sort(function(a, b) {
         if (a.tempoDeChegada > b.tempoDeChegada) { return 1; }
         if (a.tempoDeChegada < b.tempoDeChegada) { return -1; }
         return 0;
@@ -20,7 +20,7 @@ function listaDeProcessosFIFO(listaDeProcessos, memoria) {
         if (processo.tempoDeChegada <= tempoCorrente) {
             preenchePaginasNaMemoria(processo, memoria);
             let matrix = stringMatrix(memoria);
-            let retangulo = new Retangulo(processo.id, tempoCorrente, -1, -1, false, -1, true, matrix);
+            let retangulo = new Retangulo(processo.id, tempoCorrente, false, -1, false, -1, true, matrix);
             tempoCorrente += processo.tempoDeExecucao;
             processo.turnAround = tempoCorrente - processo.tempoDeChegada;
             processo.tempoDeEspera = processo.turnAround - processo.tempoDeExecucao;
@@ -31,7 +31,7 @@ function listaDeProcessosFIFO(listaDeProcessos, memoria) {
             tempoCorrente += processo.tempoDeChegada - tempoCorrente;
             preenchePaginasNaMemoria(processo, memoria);
             let matrix = stringMatrix(memoria);
-            let retangulo = new Retangulo(processo.id, tempoCorrente, -1, -1, false, -1, true, matrix);
+            let retangulo = new Retangulo(processo.id, tempoCorrente, false, -1, false, -1, true, matrix);
             tempoCorrente += processo.tempoDeExecucao;
             processo.turnAround = tempoCorrente - processo.tempoDeChegada;
             processo.tempoDeEspera = processo.turnAround - processo.tempoDeExecucao;
@@ -43,9 +43,9 @@ function listaDeProcessosFIFO(listaDeProcessos, memoria) {
     return listaDeRetangulos;
 }
 
-function findTurnAroundTime(listaDeProcessos) {
+function findTurnAroundTimeFIFO(listaDeProcessos) {
     let matrix = new Array(10);
-    for(let i = 0 ; i < 10 ; i++){
+    for (let i = 0; i < 10; i++) {
         matrix[i] = new Array(5).fill('-1');
     }
     let memoria = {
@@ -96,7 +96,7 @@ function preenchePaginasNaMemoria(processo, memoria) {
 }
 
 function removePaginasDaMemoria(processo, memoria) {
-    for(let count=0 ; count < processo.paginas.length ; count++){
+    for (let count = 0; count < processo.paginas.length; count++) {
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
         memoria.matrixMemoria[i][j] = '-1';
@@ -109,8 +109,8 @@ function stringMatrix(memoria) {
     let matrix = "";
     for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
         for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
-            if(memoria.matrixMemoria){
-                if(memoria.matrixMemoria[i][j] != "-1")
+            if (memoria.matrixMemoria) {
+                if (memoria.matrixMemoria[i][j] != "-1")
                     matrix += "\xa0"
                 matrix += ("\xa0" + memoria.matrixMemoria[i][j] + " ");
             }
@@ -132,7 +132,7 @@ function main() {
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
 
-    let retorno = findTurnAroundTime(listaDeProcessos);
+    let retorno = findTurnAroundTimeFIFO(listaDeProcessos);
     //console.log("Lista de retângulos:")
     //console.log(retorno.listaDeRetangulos)
     console.log("Retângulo " + retorno.listaDeRetangulos[0].id)
@@ -145,7 +145,7 @@ function main() {
     console.log(retorno.Tat);
     console.log("WT:")
     console.log(retorno.Wt);
-    
+
     //let matrix = new Array(10);
     //for(let i = 0 ; i < 10 ; i++){
     //    matrix[i] = new Array(5).fill('-1');
@@ -164,9 +164,9 @@ function main() {
     //console.log(memoria.matrixMemoria)
     //console.log(memoria.espacosVazios)
     //console.log(stringMatrix(memoria))
-    
+
 }
 
 main();
 
-export { findTurnAroundTime }
+export { findTurnAroundTimeFIFO }

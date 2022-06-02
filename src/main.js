@@ -3,38 +3,39 @@ import { FontLoader } from 'FontLoader';
 import { TextGeometry } from 'TextGeometry';
 import { GUI } from 'GUI';
 import { PointerLockControls } from 'PointerLockControls';
-import { listaDeProcessosFIFO } from './FIFO.js';
-import { Processo } from './Processo.js';
+import { Processo } from './pagina2/Processo.js';
 import { SistemaInput } from './SistemaInput.js';
-import { findavgTimeSJF } from './SJF.js';
-import { findavgTimeRR } from './RR.js';
-import { findavgTimeEDF } from './EDF.js';
+import { findTurnAroundTimeFIFO } from './pagina2/FIFO.js';
+import { findavgTimeSJF } from './pagina2/SJF.js';
+import { findavgTimeRR } from './pagina2/RR.js';
+import { findavgTimeEDF } from './pagina2/EDF.js';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
 const NUMERO_MAXIMO_TEMPO = 100;
 
-const LARGURA = 1200;
+const LARGURA = 1150;
 const ALTURA = 600;
 
 const ESQUERDA_CAMERA = -5;
 const DIREITA_CAMERA = 30;
 const CIMA_CAMERA = 40;
 const BAIXO_CAMERA = -1;
-const width = LARGURA;
-const height = ALTURA;
 
 const gui = new GUI({ name: "Escalonamento", width: 200 })
 
 /* Configurações da renderização */
 let scene, renderer, camera, axesHelper, controleDaCamera;
+let sceneMemoria, rendererMemoria, cameraMemoria, controleDaCameraMemoria;
+let listGroups = [];
 let podeEscrever = false,
     flag = false;
 var velocidadeDaAnimacao = 0.001;
 let velocidadeAnimacaoAnterior = 0;
 let velocidadeAtual = 0.1;
-
+let algoritmoOption;
 let listaDeRetangulos = []
+let retAnterior;
 let quantidadeDeProcessos = 0;
 const listaDeProcessos = [];
 let turnAround = 0;
@@ -68,7 +69,10 @@ function controlAlgoritmosFolder() {
     let entradaVazia = { Algoritmo: '' };
     const algoritmosDeEscalonamento = ['FIFO', 'Round-Robin', 'EDF', 'SJF'];
     algoritmosFolder.add(entradaVazia, 'Algoritmo').options(algoritmosDeEscalonamento)
-        .onChange((value) => executaAlgoritmoDeEscalonamento(value, listaDeProcessos))
+        .onChange((value) => {
+            algoritmoOption = value;
+            executaAlgoritmoDeEscalonamento(value, listaDeProcessos)
+        })
     algoritmosFolder.open()
 }
 
@@ -86,8 +90,10 @@ function controlIniciarFolder() {
 
 function addProcesso() {
     quantidadeDeProcessos++;
+    let newGroup = new THREE.Group();
+    listGroups.push(newGroup);
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
-    let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0 }
+    let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0, 'Páginas': "" }
     const processoCorrente = new Processo(quantidadeDeProcessos - 1)
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
@@ -100,11 +106,16 @@ function addProcesso() {
         .onChange((value) => {
             processoCorrente.setDeadline(value + processoCorrente.getTempoDeChegada(value));
         });
+    processoCorrenteController.add(processoVariaveis, 'Páginas')
+        .onChange((value) => {
+            processoCorrente.setPaginas(value)
+        });
     listaDeProcessos.push(processoCorrente)
 }
 
 function removeProcesso() {
     if (quantidadeDeProcessos > 0) {
+        listGroups.pop();
         processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo ' + quantidadeDeProcessos])
         listaDeProcessos.pop()
         quantidadeDeProcessos--;
@@ -115,7 +126,10 @@ function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
             if (listaDeProcessos.length > 0) {
-                listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
+                let obj = findTurnAroundTimeFIFO(listaDeProcessos);
+                listaDeRetangulos = obj.listaDeRetangulos;
+                turnAround = obj.Tat;
+                waitingTime = obj.Wt;
             }
             break;
         case "Round-Robin":
@@ -124,6 +138,7 @@ function executaAlgoritmoDeEscalonamento(value) {
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
+                console.log(obj);
             }
             break;
         case "EDF":
@@ -132,6 +147,7 @@ function executaAlgoritmoDeEscalonamento(value) {
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
+                console.log(obj);
             }
             break;
         case "SJF":
@@ -140,6 +156,7 @@ function executaAlgoritmoDeEscalonamento(value) {
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
+                console.log(obj);
             }
             break;
         default:
@@ -179,12 +196,12 @@ function desenhaExecucaoDeProcesso(numeroDoProcesso = 0, tempoInicial = 0, tempo
         const posicaoInicialX = tempoInicial;
         const posicaoMinY = Math.round(numeroDoProcesso * tamanhoDoRetangulo);
         const posicaoMaxY = Math.round(numeroDoProcesso * tamanhoDoRetangulo + quantidadeDeAlturaDosRetangulos);
-
-        scene.add(criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMaxY, color));
+        let ret = criaRetangulo(posicaoInicialX, velocidadeAtual, posicaoMinY, posicaoMaxY, color);
+        listGroups[numeroDoProcesso].add(ret)
     } else {
-        const ultimoRetangulo = listaDeRetangulos[listaDeProcessos.length - 1];
+        const ultimoRetangulo = listaDeRetangulos[listaDeRetangulos.length - 1];
         if (ultimoRetangulo && !flag) {
-            if (tempoFinal == listaDeRetangulos[listaDeProcessos.length - 1].tempoFinal) {
+            if (tempoFinal == listaDeRetangulos[listaDeRetangulos.length - 1].tempoFinal) {
                 podeEscrever = true;
                 flag = true;
             }
@@ -247,7 +264,7 @@ function numeracaoDeEixos(value, interval) {
         textMesh1.position.y = -0.7;
     })
 
-    scene.add(textMesh1);
+    return textMesh1;
 }
 
 function render() {
@@ -256,6 +273,7 @@ function render() {
         listaDeRetangulos.forEach((retangulo) => {
             if (retangulo) {
                 if (retangulo.isSobrecarga()) {
+                    console.log("Entrou aqui")
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
                 } else if (retangulo.isDeadlineBool()) {
                     desenhaExecucaoDeProcesso(retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xAAAAAA);
@@ -270,7 +288,45 @@ function render() {
             }
         })
     }
+    listGroups.forEach(group => {
+        console.log(group)
+        scene.add(group);
+    })
     renderer.render(scene, camera);
+}
+
+function atualizarCenaMemoria(text = "") {
+    const textoDeApresentacao = text;
+    const loader = new FontLoader();
+    let textMesh1 = new THREE.Mesh();
+    loader.load('src/helvetiker_regular.typeface.json', function(font) {
+        const textGeo = new TextGeometry(textoDeApresentacao, {
+            font: font,
+            size: 2.0,
+            height: 0.02,
+            curveSegments: 12,
+            bevelThickness: 0.1,
+            bevelSize: 0.01,
+            bevelEnabled: true
+        });
+
+        textGeo.computeBoundingBox();
+
+        const materials = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, wireframe: true });
+
+        textMesh1.geometry = textGeo;
+        textMesh1.material = materials;
+
+        textMesh1.position.x += 0;
+        textMesh1.position.y += 30;
+    })
+    sceneMemoria.add(textMesh1);
+    renderMemoria();
+}
+
+function renderMemoria() {
+    requestAnimationFrame(renderMemoria)
+    rendererMemoria.render(sceneMemoria, cameraMemoria);
 }
 
 function controle(event) {
@@ -296,32 +352,34 @@ function controle(event) {
 }
 
 function limparCena() {
-    if (scene.children.length > 141) {
-        for (let i = scene.children.length - 1; i >= 81; i--) {
+    if (scene.children.length > 201) {
+        for (let i = scene.children.length - 1; i >= 201; i--) {
             scene.remove(scene.children[i]);
             flag = false;
-            console.log(i)
         }
     }
 }
 
 function iniciar() {
     limparCena();
-    render();
+    /* executaAlgoritmoDeEscalonamento(algoritmoOption); */
     velocidadeAtual = 0.0;
+    render();
 }
 
 function iniciarCena() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setClearColor(new THREE.Color(1.0, 1.0, 1.0));
+
     const element = document.getElementById('canvas-three');
+
     element.appendChild(renderer.domElement);
 
-    renderer.setSize(width, height);
+    renderer.setSize(LARGURA, ALTURA);
 
     document.addEventListener('keydown', controle, false);
 
-    camera = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, width / height, 0);
+    camera = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, LARGURA / ALTURA, 0);
     controleDaCamera = new PointerLockControls(camera, renderer.domElement);
 
     if (controleDaCamera) {
@@ -332,24 +390,38 @@ function iniciarCena() {
             }, false
         )
     }
-    renderer.setSize(width, height);
+    renderer.setSize(LARGURA, ALTURA);
     scene = new THREE.Scene();
 
-    limparCena()
 
 
     let numeroEixo = 0;
     for (let i = 0; i < NUMERO_MAXIMO_TEMPO; i++) {
-        axesHelper = new THREE.AxesHelper(1000);
+        axesHelper = new THREE.AxesHelper(100);
         axesHelper.setColors(new THREE.Color(0.0, 0.0, 0.0), new THREE.Color(0.0, 0.0, 0.0));
         axesHelper.position.x = i;
-        numeracaoDeEixos(i, numeroEixo)
         scene.add(axesHelper);
+        scene.add(numeracaoDeEixos(i, numeroEixo));
         numeroEixo++;
     }
-    console.log(scene);
-    scene.add(camera);
     renderer.render(scene, camera);
+    limparCena()
+}
+
+function iniciarCenaMemoria() {
+    rendererMemoria = new THREE.WebGLRenderer({ antialias: true });
+    rendererMemoria.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
+
+    const elementMemoria = document.getElementById('mem-content');
+
+    elementMemoria.appendChild(rendererMemoria.domElement);
+
+    rendererMemoria.setSize(300, 300);
+    cameraMemoria = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, LARGURA / ALTURA, 0);
+    sceneMemoria = new THREE.Scene();
+    sceneMemoria.add(cameraMemoria);
+
+    rendererMemoria.render(sceneMemoria, cameraMemoria);
 }
 
 function init() {
@@ -358,6 +430,7 @@ function init() {
     controlAlgoritmosFolder();
     controlIniciarFolder();
     iniciarCena();
+    // iniciarCenaMemoria();
 }
 
 init();
