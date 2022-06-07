@@ -23,7 +23,7 @@ const DIREITA_CAMERA = 30;
 const CIMA_CAMERA = 40;
 const BAIXO_CAMERA = -1;
 
-const gui = new GUI({ name: "Escalonamento", width: 200 })
+const gui = new GUI({ name: "Escalonamento", width: 200 });
 
 /* Configurações da renderização */
 let scene, renderer, camera, axesHelper, controleDaCamera;
