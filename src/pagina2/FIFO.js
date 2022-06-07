@@ -62,7 +62,7 @@ function listaDeProcessosFIFO(listaDeProcessos, controle) {
     return listaDeRetangulos;
 }
 
-function findTurnAroundTime(listaDeProcessos) {
+function findTurnAroundTimeFIFO(listaDeProcessos) {
     //Matriz de memória RAM
     //Quando um processo estiver no disco, 
     let matrix = new Array(10);
@@ -200,7 +200,7 @@ function main() {
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
 
-    let retorno = findTurnAroundTime(listaDeProcessos);
+    let retorno = findTurnAroundTimeFIFO(listaDeProcessos);
 
     retorno.listaDeRetangulos.forEach((retangulo) => {
             console.log("Memória RAM com o processo " + retangulo.id)
