@@ -8,55 +8,50 @@
  e adiciona a nova página no lugar.
   */
 
- function FIFO(stringDeReferencia, numeroDeQuadros) {
-    let pagEmMemoria = []; //Lista de páginas que estão na memória
-    let faltaDePagina = []; //Lista de faltas 
+ //Numero maximo para execução de um processo é 10
+ //Então o número de quadros é 10
+ function FIFO(vetorDePaginas, pagina, numeroDeQuadros) { 
+     /*console.log("Dentro do FIFO")
+     console.log(vetorDePaginas)*/
+    let pagEmMemoria = vetorDePaginas; //Lista de páginas que estão na memória
     let pagEmMemoriaArray = []; //vetor da lista de páginas que estão na memória
-    let pafNaoEstaNaMemoria = []; //Lista de páginas que não estão na memória
-    let pafNaoEstaNaMemoriaArray = []; //vetor da lista de páginas que não estão na memória
-    
-    for (let i = 0; i < stringDeReferencia.length; i++) {
-            //Já há referência para a página buscada: não há falta de página
-            if (pagEmMemoria.includes(stringDeReferencia[i])) {
-                faltaDePagina.push('NF');
-            } else {
-                //Não há referência para a pagina buscada:há falta de página
-                faltaDePagina.push('F');
-                //Se há espaço livre na memória
-                if (pagEmMemoria.length < numeroDeQuadros) {
-                    //adiciona na primeira posição livre 
-                    pagEmMemoria.unshift(stringDeReferencia[i]);
-                } 
-                //Se não há espaço livre
-                else {
-                    if (pafNaoEstaNaMemoria.length >= numeroDeQuadros) {
-                        pafNaoEstaNaMemoria.pop(); //Retira a página que estava no vetor de páginas que não estão dentro da memória 
-                    }
-                    pafNaoEstaNaMemoria.unshift(pagEmMemoria.pop()); //Retira a página que tá no vetor de páginas que estão dentro da memória
-                                                            // e coloca no vetor de páginas que não estão dentro da memória
-                    //adiciona a página
-                    pagEmMemoria.unshift(stringDeReferencia[i]);
-                }
-            }
-        pagEmMemoriaArray.push([...pagEmMemoria]); //Joga o vetor de paginas em memória dentro de um outro vetor
-        pafNaoEstaNaMemoriaArray.push([...pafNaoEstaNaMemoria]); //Joga o vetor de paginas que não estão dentro da memória dentro de um outro vetor
+
+    //Não há referência para a pagina buscada:há falta de página
+    if (!pagEmMemoria.includes(pagina)) {
+        //Se há espaço livre na memória
+        if (pagEmMemoria.length < numeroDeQuadros) {
+            //adiciona na primeira posição livre 
+            pagEmMemoria.unshift(pagina);
+        } 
+        //Se não há espaço livre
+        else {
+            pagEmMemoria.pop();
+            //pagEmMemoria.shift(); //teste para rodar main
+            pagEmMemoria.unshift(pagina);
+        }
     }
-    
-    console.log("Controle de falta de páginas:")
-    console.log(faltaDePagina)
-    console.log("Páginas em memória:")
-    console.log(pagEmMemoriaArray)
-    console.log("Páginas que não estão na memória:")
-    console.log(pafNaoEstaNaMemoriaArray)
+
+    pagEmMemoriaArray.push(...pagEmMemoria); //Joga o vetor de paginas em memória dentro de um outro vetor
+
+    //console.log("Páginas em memória:")
+    //console.log(pagEmMemoriaArray)
     
     //Retorna todos os vetores
-    return {pagEmMemoriaArray, faltaDePagina, pafNaoEstaNaMemoriaArray};
+    /*console.log("Saida do FIFO")
+    console.log(pagEmMemoriaArray)*/
+    return pagEmMemoriaArray;
 }
 
 function main() {
-	let numeroDeQuadros = 4;
-    let stringDeReferencia = "70120304230321201701" 
-    FIFO(stringDeReferencia, numeroDeQuadros);  
+	let numeroDeQuadros = 10;
+    let vetorDePaginas = ['A','B','C','D','E','F','G','H','I']
+    vetorDePaginas.push('J')
+
+    let pagina = 'k';
+    FIFO(vetorDePaginas,pagina, numeroDeQuadros);  
 }
 
-main();
+//main();
+
+
+export { FIFO }

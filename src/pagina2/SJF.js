@@ -1,7 +1,7 @@
 // Test Setup
 import { Processo } from "./Processo.js";
 import { Retangulo } from "./Retangulo.js";
-import { LRU } from "./LRUPaginacao-SJF.js";
+import { FIFO } from "./FIFOPaginacao.js";
 
 /*
  * Para cada volta do looping, ordenamos o vetor de processos e testamos.
@@ -75,10 +75,27 @@ const findWaitingTime = (listaDeProcessos, controle) => {
                 retangulo.matrix = matrix;
 
                 retangulo.tempoInicial = tempoCorrente; // Define o tempo inicial do retangulo
+
+                console.log("\n\n\n\n================== Tempo Atual: " + retangulo.tempoInicial + " ==================\n")
+                console.log(retangulo.matrix)
+                console.log("======================= Disco =======================\n")
+                console.log(stringDisco(controle))
+                console.log("====================== Páginas ======================\n")
+                console.log(stringTabelaPaginas(controle))
+
                 tempoCorrente += vetorPrincipal[0].tempoDeExecucao; // Adiciona um ciclo no tempo
                 retangulo.id = vetorPrincipal[0].id; // Define o processo do retangulo
                 retangulo.tempoFinal = tempoCorrente; // Define o tempo final do retangulo
                 listaDeRetangulos.push(retangulo);
+
+                /* debug */
+                console.log("===================== Retangulo =====================\n")
+                console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Tempo Inicial: " + retangulo.tempoInicial)
+                console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Tempo Final: " + retangulo.tempoFinal)
+                console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0ID: " + retangulo.id)
+                console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Sobrecarga? " + retangulo.sobrecarga)
+                console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Deadline? " + retangulo.deadline) 
+
                 //Define o tempo de espera do processo como o tempo atual menos o tempo de execução
                 if (listaDeProcessos) {
                     for (let i = 0; i < quantidadeDeProcessos; i++) {
@@ -145,7 +162,7 @@ const findavgTimeSJF = (listaDeProcessos) => {
 
     let matrix = new Array(10);
     for(let i = 0 ; i < 10 ; i++){
-        matrix[i] = new Array(5).fill('-1');
+        matrix[i] = new Array(5).fill(-1);
     }
     let controle = {
         matrixMemoria: matrix,
@@ -178,11 +195,6 @@ const findavgTimeSJF = (listaDeProcessos) => {
         Tat: (total_tat / quantidadeDeProcessos)
     }
 
-    console.log("Disco:")
-    console.log(controle.vetorDisco)
-    console.log("Paginas:")
-    console.log(controle.paginas)
-
     return retorno;
 }
 
@@ -193,7 +205,7 @@ function preenchePaginasNaMemoria(processo, controle) {
         let count = 0; //Controle para a página atual
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
             for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
-                if (controle.matrixMemoria[i][j] == '-1') { //Se a poisção estiver livre
+                if (controle.matrixMemoria[i][j] == -1) { //Se a poisção estiver livre
                     let pagina = {
                         valor: processo.paginas[count],
                         processo: processo.id
@@ -224,13 +236,13 @@ function trataPaginas(processo, controle){
                 paginasParaTroca.push(processo.paginas[i]);
             else if(controle.paginas.length < 10)
                 controle.paginas.unshift(processo.paginas[i]);
-        }    
+        }
+        else
+            paginasParaTroca.push(processo.paginas[i]);   
     }
-    console.log(controle.paginas)
     if(paginasParaTroca.length > 0){
         for(let i = 0 ; i < paginasParaTroca.length ; i++){
-            LRU(controle.paginas, paginasParaTroca[i], 10);
-            console.log(controle.paginas)
+            FIFO(controle.paginas, paginasParaTroca[i], 10);
         }
     }
 }
@@ -240,28 +252,64 @@ function removePaginasDaMemoria(processo, controle) {
     for(let count=0 ; count < quantidadeDePaginas ; count++){
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
-        controle.matrixMemoria[i][j] = '-1';
+        controle.matrixMemoria[i][j] = -1;
         controle.espacosVaziosMatrixMemoria++;
-        processo.posicoesPaginas[count] = '-1';
+        processo.posicoesPaginas[count] = -1;
     }
 }
 
 function stringMatrix(controle) {
-    let matrix = "";
+    let matrix = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
+        matrix += "\xa0\xa0\xa0"
         for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
             if(controle.matrixMemoria){
-                if(controle.matrixMemoria[i][j] != "-1"){
-                    matrix += "\xa0"
-                    matrix += ("\xa0" + controle.matrixMemoria[i][j].processo + " ");
+                if(controle.matrixMemoria[i][j] == -1){
+                    matrix += ("\xa0- ");
                 }
                 else 
-                    matrix += ("\xa0" + controle.matrixMemoria[i][j] + " ");
+                    matrix += ("\xa0" + controle.matrixMemoria[i][j].processo + " ");
             }
         }
-        matrix += "\n";
+        matrix += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     }
     return matrix;
+}
+
+function stringDisco(controle) {
+    let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
+    let count = 0;
+    for (let i = 0; i < 12; i++) { 
+            count++;
+            if(controle.vetorDisco){
+                if(controle.vetorDisco[i] == -1){
+                    vetor += ("\xa0- ");
+                }
+                else 
+                    vetor += ("\xa0" + controle.vetorDisco[i]  + " ");
+                if(count%3==0)
+                    vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
+        }
+    }
+    return vetor;
+}
+
+function stringTabelaPaginas(controle) {
+    let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
+    let count = 0;
+    for (let i = 0; i < 10; i++) { 
+            count++;
+            if(controle.paginas){
+                if(controle.paginas[i] == -1){
+                    vetor += ("\xa0- ");
+                }
+                else 
+                    vetor += ("\xa0" + controle.paginas[i]  + " ");
+                if(count%5==0)
+                    vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
+        }
+    }
+    return vetor;
 }
 
 function temEspacoNoDisco(vetorDisco) {
@@ -286,7 +334,7 @@ function main() {
 
     let retorno = findavgTimeSJF(listaDeProcessos);
 
-    retorno.listaDeRetangulos.forEach((retangulo) => {
+   /* retorno.listaDeRetangulos.forEach((retangulo) => {
         console.log("Memória RAM com o processo " + retangulo.id)
         console.log(retangulo.matrix)
     })
@@ -295,7 +343,7 @@ function main() {
     console.log("TAT:")
     console.log(retorno.Tat);
     console.log("WT:")
-    console.log(retorno.Wt);
+    console.log(retorno.Wt);*/
 }
 
 main();
