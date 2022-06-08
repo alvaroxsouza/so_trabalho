@@ -383,7 +383,9 @@ function trataPaginas(processo, controle){
                 paginasParaTroca.push(processo.paginas[i]);
             else if(controle.paginas.length < 10)
                 controle.paginas.unshift(processo.paginas[i]);
-        }    
+        }
+        else
+            paginasParaTroca.push(processo.paginas[i]);       
     }
     //console.log(controle.paginas)
     if(paginasParaTroca.length > 0){
