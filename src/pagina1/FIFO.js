@@ -5,6 +5,8 @@ import { Retangulo } from "./Retangulo.js";
 function listaDeProcessosFIFO(listaDeProcessos) {
     let tempoCorrente = 0;
 
+    let mudancaa = 0;
+
     let listaDeRetangulos = [];
 
     listaDeProcessos.sort(function(a, b) {
@@ -36,7 +38,7 @@ function listaDeProcessosFIFO(listaDeProcessos) {
         }
     })
     return listaDeRetangulos;
-}
+} //mudanca
 
 function findTurnAroundTime(listaDeProcessos) {
     let listaDeRetangulos = listaDeProcessosFIFO(listaDeProcessos);
