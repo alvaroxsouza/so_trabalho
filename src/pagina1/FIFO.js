@@ -50,6 +50,8 @@ function findTurnAroundTime(listaDeProcessos) {
         totalWT += processo.tempoDeEspera;
     })
 
+    let testete = 0;
+
     let retorno = {
         listaDeRetangulos: listaDeRetangulos,
         Tat: (total / listaDeProcessos.length),
