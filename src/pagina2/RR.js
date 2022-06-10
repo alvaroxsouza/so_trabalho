@@ -109,13 +109,14 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                         priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao - priorityEndline[i].tempoDeChegada;
                         // À medida que o processo é totalmente executado faz seu tempo de execução restante = 0
                         priorityEndline[i].tempoDeExecucaoAtual = 0;
-                        //Remove as páginas do processo que acabou da memória RAM
-                        removePaginasDaMemoria(priorityEndline[i], controle);
-                        retangulo.tempoFinal = tempoCorrente;
 
                         let matrixMemoria = stringMatrix(controle);
                         let matrixDisco = stringDisco(controle);
                         let matrixPaginas = stringTabelaPaginas(controle);
+
+                        //Remove as páginas do processo que acabou da memória RAM
+                        removePaginasDaMemoria(priorityEndline[i], controle);
+                        retangulo.tempoFinal = tempoCorrente;
 
                         retangulo.matrixMemoria = matrixMemoria;
                         retangulo.matrixDisco = matrixDisco;
@@ -238,9 +239,8 @@ function preenchePaginasNaMemoria(processo, controle) {
     else {
         trataPaginas(processo, controle);
     }
-    /*
-    console.log("Antes de remover")
-    console.log(stringMatrix(controle))*/
+
+
     if (controle.espacosVaziosMatrixMemoria != 50) { //Caso tenha alguma página  
         //Remove páginas da memória ram que não estão mais na tabela de páginas (quadros)
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
@@ -259,14 +259,9 @@ function preenchePaginasNaMemoria(processo, controle) {
             }
         }
     }
-    /*
-    console.log("Depois de remover")
-    console.log(stringMatrix(controle))*/
 
     let count = 0;
     let tamOriginal=qtdDePaginasFaltantes.length;
-    /*
-    console.log(qtdDePaginasFaltantes)*/
     if(qtdDePaginasFaltantes.length > 0) {
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
             for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
@@ -287,12 +282,7 @@ function preenchePaginasNaMemoria(processo, controle) {
                         qtdDePaginasFaltantes.shift(); //Remove a página faltante do vetor de faltantes
     
                         if (count == tamOriginal) //Se todas as páginas foram guardadas
-                        {/*
-                            console.log("Depois de preencher")
-                            console.log(stringMatrix(controle))
-                        */
                             return true;
-                        }
                     }
                 }
             }
