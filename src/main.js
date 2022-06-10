@@ -16,8 +16,8 @@ const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
 const NUMERO_MAXIMO_TEMPO = 100;
 
-const LARGURA = 1150;
-const ALTURA = 600;
+const LARGURA = 1000;
+const ALTURA = 500;
 
 const ESQUERDA_CAMERA = -5;
 const DIREITA_CAMERA = 30;

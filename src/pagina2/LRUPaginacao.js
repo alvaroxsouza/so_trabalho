@@ -8,60 +8,59 @@
  tempo e adiciona a nova página no lugar.
   */
 
-function LRU(stringDeReferencia, numeroDeQuadros) {
-    let pagEmMemoria = []; //Lista de páginas que estão na memória
-    let faltaDePagina = []; //Lista de faltas 
-    let pagEmMemoriaArray = []; //vetor da lista de páginas que estão na memória
-    let pafNaoEstaNaMemoria = []; //Lista de páginas que não estão na memória
-    let pafNaoEstaNaMemoriaArray = []; //vetor da lista de páginas que não estão na memória
-    
+function LRU(vetorDePaginas, pagina, numeroDeQuadros) {
+    let pagEmMemoria = vetorDePaginas; //Lista de páginas que estão na memória
+    let pagEmMemoriaArray = []; //vetor da lista de páginas que estão na memória    
 
-    for (let i = 0; i < stringDeReferencia.length ; i++){
-        //Já há referência para a página buscada: não há falta de página
-        if (pagEmMemoria.includes(stringDeReferencia[i])){
-            faltaDePagina.push('NF');
-            //Atualizando ele como acessado no momento
-            pagEmMemoria.splice(pagEmMemoria.indexOf(stringDeReferencia[i]),1);
-            pagEmMemoria.unshift(stringDeReferencia[i]);
-        }
-         //Não há referência para a pagina buscada:há falta de página
-        else{
-            faltaDePagina.push('F');
-            //Se há espaço livre na memória
-            if (pagEmMemoria.length < numeroDeQuadros){
-                //adiciona na primeira posição livre
-                pagEmMemoria.unshift(stringDeReferencia[i]);
-            }
-             //Se não há espaço livre
-            else{
-                if (pafNaoEstaNaMemoria.length >= numeroDeQuadros) {
-                    pafNaoEstaNaMemoria.pop(); //Retira a página que estava no vetor de páginas que não estão dentro da memória
-                }
-                pafNaoEstaNaMemoria.unshift(pagEmMemoria.pop()); //Retira a página que tá no vetor de páginas que estão dentro da memória
-                                                        // e coloca no vetor de páginas que não estão dentro da memória
-                //adiciona a página
-                pagEmMemoria.unshift(stringDeReferencia[i]);
-            }
-        }
-        pagEmMemoriaArray.push([...pagEmMemoria]);
-        pafNaoEstaNaMemoriaArray.push([...pafNaoEstaNaMemoria]);
+    if (pagEmMemoria.includes(pagina)){
+        //Atualizando ele como acessado no momento
+        pagEmMemoria.splice(pagEmMemoria.indexOf(pagina),1);
+        pagEmMemoria.unshift(pagina);
     }
-    
-    console.log("Controle de falta de páginas:")
-    console.log(faltaDePagina)
-    console.log("Páginas em memória:")
-    console.log(pagEmMemoriaArray)
-    console.log("Páginas que não estão na memória:")
-    console.log(pafNaoEstaNaMemoriaArray)
+     //Não há referência para a pagina buscada:há falta de página
+    else{
+        //Se há espaço livre na memória
+        if (pagEmMemoria.length < numeroDeQuadros){
+            //adiciona na primeira posição livre
+            pagEmMemoria.unshift(pagina);
+        }
+         //Se não há espaço livre
+        else{
+            pagEmMemoria.pop(); //Retira a página que tá no vetor de páginas que estão dentro da memória
+                                // e coloca no vetor de páginas que não estão dentro da memória
+            //adiciona a página
+            pagEmMemoria.unshift(pagina);
+        }
+    }    
+    pagEmMemoriaArray.push(...pagEmMemoria); //Joga o vetor de paginas em memória dentro de um outro vetor
+
+    //console.log("Páginas em memória:")
+    //console.log(pagEmMemoriaArray)
     
     //Retorna todos os vetores
-    return {pagEmMemoriaArray, faltaDePagina, pafNaoEstaNaMemoriaArray};
+    /*console.log("Vetor de paginas na troca")
+    console.log(pagEmMemoriaArray)*/
+    return pagEmMemoriaArray;
 }
 
 function main() {
-	let numeroDeQuadros = 4;
-    let stringDeReferencia = "70120304230321201701" 
-    LRU(stringDeReferencia, numeroDeQuadros);  
+	let numeroDeQuadros = 10;
+    let vetorDePaginas = [];
+    vetorDePaginas.unshift('A')
+    vetorDePaginas.unshift('B')
+    vetorDePaginas.unshift('C')
+    vetorDePaginas.unshift('D')
+    vetorDePaginas.unshift('E')
+    vetorDePaginas.unshift('F')
+    vetorDePaginas.unshift('G')
+    vetorDePaginas.unshift('H')
+    vetorDePaginas.unshift('I')
+    vetorDePaginas.unshift('J')
+
+    let pagina = 'k';
+    LRU(vetorDePaginas, pagina, numeroDeQuadros);  
 }
 
-main();
+//main();
+
+export { LRU }

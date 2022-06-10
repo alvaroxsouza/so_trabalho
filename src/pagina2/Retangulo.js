@@ -1,5 +1,5 @@
 class Retangulo {
-    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, deadlineBool = false, deadline = -1, novaMatrix = false, matrix = "") {
+    constructor(id = -1, tempoInicial = 0, sobrecarga = false, tempoFinal = 0, deadlineBool = false, deadline = -1, novaMatrix = false, matrixMemoria = "", matrixDisco = "", matrixPaginas="") {
         this.id = id;
         this.tempoInicial = tempoInicial;
         this.tempoFinal = tempoFinal;
@@ -7,7 +7,9 @@ class Retangulo {
         this.deadlineBool = deadlineBool;
         this.deadline = deadline;
         this.novaMatrix = novaMatrix;
-        this.matrix = matrix;
+        this.matrixMemoria = matrixMemoria;
+        this.matrixDisco = matrixDisco;
+        this.matrixPaginas = matrixPaginas;
     }
 
     getId() {
@@ -56,6 +58,18 @@ class Retangulo {
 
     setDeadline(deadline) {
         this.deadline = deadline;
+    }
+
+    getMatrixMemoria() {
+        return this.matrixMemoria;
+    }
+
+    getMatrixDisco() {
+        return this.matrixDisco;
+    }
+
+    getMatrixPaginas() {
+        return this.matrixPaginas;
     }
 }
 export { Retangulo };
