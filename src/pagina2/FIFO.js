@@ -54,7 +54,7 @@ function listaDeProcessosFIFO(listaDeProcessos, controle) {
                      
             preenchePaginasNaMemoria(processo, controle);
 
-            let retangulo = new Retangulo(processo.id, tempoCorrente, false, -1, false, -1, true, matrix);
+            let retangulo = new Retangulo(processo.id, tempoCorrente, false, -1, false, -1, true);
 
             tempoCorrente += processo.tempoDeExecucao;
             processo.turnAround = tempoCorrente - processo.tempoDeChegada;
