@@ -138,10 +138,19 @@ function iniciaRetangulos(listaDeRetangulos) {
     })
 }
 
+function limpaListaDeRetangulos(listaDeRetangulosGraficos) {
+    if (listaDeRetangulosGraficos) {
+        listaDeRetangulosGraficos.forEach((retanguloGrafico) => {
+            scene.remove(retanguloGrafico);
+        })
+    }
+}
+
 function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
             listaDeRetangulosGraficos = [];
+            limpaListaDeRetangulos(listaDeRetangulosGraficos);
             if (listaDeProcessos.length > 0) {
                 let obj = findTurnAroundTimeFIFO(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -154,6 +163,7 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "Round-Robin":
             listaDeRetangulosGraficos = [];
+            limpaListaDeRetangulos(listaDeRetangulosGraficos)
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -167,6 +177,7 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "EDF":
             listaDeRetangulosGraficos = [];
+            limpaListaDeRetangulos(listaDeRetangulosGraficos)
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -180,6 +191,7 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "SJF":
             listaDeRetangulosGraficos = [];
+            limpaListaDeRetangulos(listaDeRetangulosGraficos)
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeSJF(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -348,16 +360,56 @@ function render() {
             podeEscrever = false;
         }
         scene.add(retanguloGrafico);
-        atualizarCenaMemoria(textMemoriaScene, retangulo.matrix);
+        // atualizarCenaMemoria(textMemoriaScene, retangulo.matrix);
     }
     renderer.render(scene, camera);
 }
 
-function atualizarCenaMemoria(textMemoriaScene, newText) {
-    const loader = new FontLoader();
-    loader.load('src/helvetiker_regular.typeface.json', function(font) {
-        const textGeo = new TextGeometry(newText, {
-            font: font,
+function controle(event) {
+    if (controleDaCamera) {
+        if (event.code == 'KeyW') {
+            camera.position.y += 5;
+        }
+        if (event.code == 'KeyS') {
+            if (camera.position.y > -5) {
+                camera.position.y -= 5;
+            }
+        }
+        if (event.code == 'KeyA') {
+            if (camera.position.x > -5) {
+                camera.position.x -= 5;
+            }
+        }
+        if (event.code == 'KeyD') {
+            camera.position.x += 5;
+        }
+        camera.updateProjectionMatrix()
+    }
+}
+
+function iniciar() {
+    limparCena();
+    velocidadeAtual = 0.0;
+    render();
+    //renderMemoria();
+}
+
+function init() {
+    controlFolderSistema();
+    controlFolderProcessos();
+    controlAlgoritmosFolder();
+    controlIniciarFolder();
+    iniciarCena();
+    //iniciarCenaMemoria();
+}
+
+init();
+
+/* function atualizarCenaMemoria(textMemoriaScene, newText) {
+const loader = new FontLoader();
+loader.load('src/helvetiker_regular.typeface.json', function(font) {
+    const textGeo = new TextGeometry(newText, {
+        font: font,
             size: 2.0,
             height: 0.02,
             curveSegments: 12,
@@ -422,44 +474,4 @@ function iniciarCenaMemoria() {
     textMemoriaScene = criaTextMemoria();
     sceneMemoria.add(textMemoriaScene)
     rendererMemoria.render(sceneMemoria, cameraMemoria);
-}
-
-function controle(event) {
-    if (controleDaCamera) {
-        if (event.code == 'KeyW') {
-            camera.position.y += 5;
-        }
-        if (event.code == 'KeyS') {
-            if (camera.position.y > -5) {
-                camera.position.y -= 5;
-            }
-        }
-        if (event.code == 'KeyA') {
-            if (camera.position.x > -5) {
-                camera.position.x -= 5;
-            }
-        }
-        if (event.code == 'KeyD') {
-            camera.position.x += 5;
-        }
-        camera.updateProjectionMatrix()
-    }
-}
-
-function iniciar() {
-    limparCena();
-    velocidadeAtual = 0.0;
-    render();
-    renderMemoria();
-}
-
-function init() {
-    controlFolderSistema();
-    controlFolderProcessos();
-    controlAlgoritmosFolder();
-    controlIniciarFolder();
-    iniciarCena();
-    iniciarCenaMemoria();
-}
-
-init();
+} */
