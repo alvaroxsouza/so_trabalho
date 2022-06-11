@@ -19,7 +19,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     for (let i = 0; i < quantidadeDeProcessos; i++)
         priorityEndline[i] = listaDeProcessos[i];
 
-    priorityEndline.sort(function(a, b) { //ordenando pelo deadline de cada processo
+    priorityEndline.sort(function (a, b) {
         if (a.tempoDeChegada > b.tempoDeChegada) {
             return 1;
         }
@@ -33,117 +33,123 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     let controleTempo = false;
     let foiReordenado = false;
     //Continua percorrendo os processos de maneira round robin até que todos eles estejam completos
-    while (1) {
-        let acabou = true;
+    for (let loop = 0; ; loop++) {
         // Percorre todos os processos um por um repetidamente
         for (let i = 0; i < quantidadeDeProcessos; i++) {
             //tempo atual maior ou igual o tempo de chegada
-            if (tempoCorrente >= priorityEndline[i].tempoDeChegada) {
-                let index = temEspacoNoDisco(controle.vetorDisco, priorityEndline[i].id); //Procura posição no disco
-                if (index != -1) //Tem espaço no disco
-                    controle.vetorDisco[index] = priorityEndline[i].id;
+            //console.log("Tempo corrente: " + tempoCorrente + " Tempo de chegada do processo " + priorityEndline[i].id + ": " + priorityEndline[i].tempoDeChegada + " Foi executado? " + priorityEndline[i].foiExecutadoPriority)
+            if (priorityEndline[i].foiExecutadoPriority == false && priorityEndline[i].ignorar == false) {
+                
+                if (tempoCorrente >= priorityEndline[i].tempoDeChegada) {
+                    if(!jaEstaNoDisco(controle.vetorDisco, priorityEndline[i].id)){
+                        let index = temEspacoNoDisco(controle.vetorDisco, priorityEndline[i].id); //Procura posição no disco
+                        if (index != -1) //Tem espaço no disco
+                            controle.vetorDisco[index] = priorityEndline[i].id;
+                        else
+                            priorityEndline[i].ignorar = true;
+                    }
+    
+                    if (controleTempo) {
+                        tempoCorrente += 1;
+                        controleTempo = false;
+                    }
 
-                if (controleTempo) {
-                    tempoCorrente += 1;
-                    controleTempo = false;
+                    let retangulo = new Retangulo(priorityEndline[i].id, tempoCorrente, false, 0, false, 0);
+
+                    // Se o tempo de execução de um processo for maior que 0
+                    // então precisa processar mais
+                    if (priorityEndline[i].tempoDeExecucaoAtual > 0) {
+                        preenchePaginasNaMemoria(priorityEndline[i], controle);
+
+                        if (aux["controle"]) {
+                            aux["indice"] = -1;
+                            aux["controle"] = false;
+                        }
+
+                        if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
+                            let retanguloSobrecarga = new Retangulo(priorityEndline[i].id, 0, true);
+
+                            // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
+                            tempoCorrente += quantum;
+                            // Defini tempo inicial do retangulo de sobrecarga
+                            retanguloSobrecarga.tempoInicial = tempoCorrente;
+                            // Defini tempo final do retangulo do processo atual 
+                            retangulo.tempoFinal = tempoCorrente;
+                            // Adcionando tempo de sobrecarga
+                            tempoCorrente += overload;
+                            // Defini tempo final do retangulo de sobrecarga
+                            retanguloSobrecarga.tempoFinal = tempoCorrente;
+
+                            // Diminui o tempo de execução do processo atual
+                            priorityEndline[i].tempoDeExecucaoAtual -= quantum;
+
+                            let matrixMemoria = stringMatrix(controle);
+                            let matrixDisco = stringDisco(controle);
+                            let matrixPaginas = stringTabelaPaginas(controle);
+
+                            retangulo.matrixMemoria = matrixMemoria;
+                            retangulo.matrixDisco = matrixDisco;
+                            retangulo.matrixPaginas = matrixPaginas;
+
+                            retanguloSobrecarga.matrixMemoria = matrixMemoria;
+                            retanguloSobrecarga.matrixDisco = matrixDisco;
+                            retanguloSobrecarga.matrixPaginas = matrixPaginas;
+
+                            // Adiciona o retangulo do processo atual e do de sobrecarga
+                            listaDeRetangulos.push(retangulo);
+                            listaDeRetangulos.push(retanguloSobrecarga);
+
+                            // Mudança do tempo para controle manual da inserção de um novo elemento
+                            controleTempo = true;
+                            tempoCorrente -= 1;
+                        }
+
+                        // Se o tempo de execução for menor ou igual ao quantum. 
+                        // Último ciclo para este processo
+                        else {
+                            // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
+                            tempoCorrente = tempoCorrente + priorityEndline[i].tempoDeExecucaoAtual;
+                            // O tempo de espera é o tempo atual menos o tempo usado por este processo
+                            priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao - priorityEndline[i].tempoDeChegada;
+                            // À medida que o processo é totalmente executado faz seu tempo de execução restante = 0
+                            priorityEndline[i].tempoDeExecucaoAtual = 0;
+
+                            let matrixMemoria = stringMatrix(controle);
+                            let matrixDisco = stringDisco(controle);
+                            let matrixPaginas = stringTabelaPaginas(controle);
+
+                            //Remove as páginas do processo que acabou da memória RAM
+                            removePaginasDaMemoria(priorityEndline[i], controle);
+                            retangulo.tempoFinal = tempoCorrente;
+
+                            retangulo.matrixMemoria = matrixMemoria;
+                            retangulo.matrixDisco = matrixDisco;
+                            retangulo.matrixPaginas = matrixPaginas;
+
+                            listaDeRetangulos.push(retangulo)
+
+                            priorityEndline[i].foiExecutadoPriority = true;
+                        }
+
+                    }
                 }
-
-                let retangulo = new Retangulo(priorityEndline[i].id, tempoCorrente, false, 0, false, 0);
-
-                // Se o tempo de execução de um processo for maior que 0
-                // então precisa processar mais
-                if (priorityEndline[i].tempoDeExecucaoAtual > 0) {
-                    preenchePaginasNaMemoria(priorityEndline[i], controle);
-
-                    if (aux["controle"]) {
+                //se nenhum processo for executado adiciona 1 ao tempo
+                else {
+                    if (!aux["controle"]) {
+                        aux["indice"] = priorityEndline[i].id;
+                        aux["controle"] = true;
+                    } else if (aux["indice"] == priorityEndline[i].id) {
                         aux["indice"] = -1;
                         aux["controle"] = false;
-                    }
-
-                    acabou = false; // Existe um processo pendente
-
-                    if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
-                        let retanguloSobrecarga = new Retangulo(priorityEndline[i].id, 0, true);
-
-                        // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
-                        tempoCorrente += quantum;
-                        // Defini tempo inicial do retangulo de sobrecarga
-                        retanguloSobrecarga.tempoInicial = tempoCorrente;
-                        // Defini tempo final do retangulo do processo atual 
-                        retangulo.tempoFinal = tempoCorrente;
-                        // Adcionando tempo de sobrecarga
-                        tempoCorrente += overload;
-                        // Defini tempo final do retangulo de sobrecarga
-                        retanguloSobrecarga.tempoFinal = tempoCorrente;
-
-                        // Diminui o tempo de execução do processo atual
-                        priorityEndline[i].tempoDeExecucaoAtual -= quantum;
-
-                        let matrixMemoria = stringMatrix(controle);
-                        let matrixDisco = stringDisco(controle);
-                        let matrixPaginas = stringTabelaPaginas(controle);
-
-                        retangulo.matrixMemoria = matrixMemoria;
-                        retangulo.matrixDisco = matrixDisco;
-                        retangulo.matrixPaginas = matrixPaginas;
-
-                        retanguloSobrecarga.matrixMemoria = matrixMemoria;
-                        retanguloSobrecarga.matrixDisco = matrixDisco;
-                        retanguloSobrecarga.matrixPaginas = matrixPaginas;
-
-                        // Adiciona o retangulo do processo atual e do de sobrecarga
-                        listaDeRetangulos.push(retangulo);
-                        listaDeRetangulos.push(retanguloSobrecarga);
-
-                        // Mudança do tempo para controle manual da inserção de um novo elemento
-                        controleTempo = true;
-                        tempoCorrente -= 1;
-                    }
-
-                    // Se o tempo de execução for menor ou igual ao quantum. 
-                    // Último ciclo para este processo
-                    else {
-                        // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
-                        tempoCorrente = tempoCorrente + priorityEndline[i].tempoDeExecucaoAtual;
-                        // O tempo de espera é o tempo atual menos o tempo usado por este processo
-                        priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao - priorityEndline[i].tempoDeChegada;
-                        // À medida que o processo é totalmente executado faz seu tempo de execução restante = 0
-                        priorityEndline[i].tempoDeExecucaoAtual = 0;
-
-                        let matrixMemoria = stringMatrix(controle);
-                        let matrixDisco = stringDisco(controle);
-                        let matrixPaginas = stringTabelaPaginas(controle);
-
-                        //Remove as páginas do processo que acabou da memória RAM
-                        removePaginasDaMemoria(priorityEndline[i], controle);
-                        retangulo.tempoFinal = tempoCorrente;
-
-                        retangulo.matrixMemoria = matrixMemoria;
-                        retangulo.matrixDisco = matrixDisco;
-                        retangulo.matrixPaginas = matrixPaginas;
-
-                        listaDeRetangulos.push(retangulo)
+                        tempoCorrente++;
                     }
                 }
             }
-            //se nenhum processo for executado adiciona 1 ao tempo 
-            else {
-                if (!aux["controle"]) {
-                    aux["indice"] = i;
-                    aux["controle"] = true;
-                } else if (aux["indice"] == i) {
-                    aux["indice"] = -1;
-                    aux["controle"] = false;
-                    tempoCorrente++;
-                }
-            }
+
         }
-        // Se todos os processos forem concluídos
-        if (acabou == true)
-            break;
 
         if (!foiReordenado) {
-            priorityEndline.sort(function(a, b) { //ordenando pelo deadline de cada processo
+            priorityEndline.sort(function (a, b) { //ordenando pelo id de cada processo
                 if (a.id > b.id) {
                     return 1;
                 }
@@ -154,19 +160,35 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
             });
             foiReordenado = true;
         }
+
+        let tamanhoLista = priorityEndline.length;
+        let acabou = true;
+        let contador = 0;
+        //console.log(contador)
+        for (let j = 0; j < priorityEndline.length; j++) {
+            if (priorityEndline[j].ignorar == false){
+                if (priorityEndline[j].foiExecutadoPriority == false)
+                    acabou = false;
+            }
+        }
+
+        //console.log("Priority")
+        //console.log(priorityEndline)
+        if (acabou) {
+            let listasRentaguloEndline = {
+                listaDeRetangulos: listaDeRetangulos,
+                priorityEndline: priorityEndline
+            }
+            return listasRentaguloEndline;
+        }
     }
-    let listasRentaguloEndline = {
-        listaDeRetangulos: listaDeRetangulos,
-        priorityEndline: priorityEndline
-    }
-    return listasRentaguloEndline;
 }
 
 // Função para calcular turn around time
 const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
     for (let i = 0; i < quantidadeDeProcessos; i++) {
-        if (priorityEndline)
-        //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
+        if (priorityEndline && priorityEndline[i].ignorar == false)
+            //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
             priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera - priorityEndline[i].tempoDeChegada;
     }
 
@@ -174,7 +196,6 @@ const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
 
 // Função para calcular o tempo médio
 const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
-    console.log(listaDeProcessos)
     let quantidadeDeProcessos = listaDeProcessos.length;
 
     let total_wt = 0,
@@ -189,7 +210,7 @@ const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
         espacosVaziosMatrixMemoria: 50,
         //Vetor de disco (memória virtual) - capacidade de 12 processos
         //Quando um processo chega, ele entra no disco
-        vetorDisco: new Array(12).fill(-1),
+        vetorDisco: new Array(10).fill(-1),
         //Vetor auxiliar (tabela) de páginas com 10 posições
         //Quando é a vez dele de executar, testa se as páginas estão no vetor
         paginas: [] //sempre se adiciona com unshift
@@ -205,8 +226,10 @@ const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
 
     // Calcular o tempo total de espera e o total turn around time
     for (let i = 0; i < quantidadeDeProcessos; i++) {
-        total_wt = total_wt + priorityEndline[i].tempoDeEspera;
-        total_tat = total_tat + priorityEndline[i].turnAround;
+        if(priorityEndline[i].ignorar == false){
+            total_wt = total_wt + priorityEndline[i].tempoDeEspera;
+            total_tat = total_tat + priorityEndline[i].turnAround;
+        } 
     }
 
     let valorWtTat = {
@@ -217,6 +240,8 @@ const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
 
     printResultados(listaDeRetangulos);
 
+    //console.log(valorWtTat.listaDeRetangulos)
+
     return valorWtTat;
 }
 
@@ -225,7 +250,8 @@ function preenchePaginasNaMemoria(processo, controle) {
     for (let u = 0; u < processo.posicoesPaginas.length; u++) { //Percorre as paginas do processo
         if (processo.posicoesPaginas[u] == -1) { //processo nunca esteve na matrix
             qtdDePaginasFaltantes.push(processo.paginas[u]);
-        } else { //processo ja esteve na matrix
+        }
+        else { //processo ja esteve na matrix
             let i = processo.posicoesPaginas[u].i;
             let j = processo.posicoesPaginas[u].j;
             if (controle.matrixMemoria[i][j].processo != processo.id) { //se o processo nao esta mais na posicao inicial
@@ -240,8 +266,7 @@ function preenchePaginasNaMemoria(processo, controle) {
         trataPaginas(processo, controle);
     }
 
-
-    if (controle.espacosVaziosMatrixMemoria != 50) { //Caso tenha alguma página  
+    if (controle.espacosVaziosMatrixMemoria != 50) { //Caso tenha alguma página
         //Remove páginas da memória ram que não estão mais na tabela de páginas (quadros)
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
             for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
@@ -258,7 +283,7 @@ function preenchePaginasNaMemoria(processo, controle) {
                 }
             }
         }
-    }
+    }  
 
     let count = 0;
     let tamOriginal = qtdDePaginasFaltantes.length;
@@ -299,7 +324,8 @@ function trataPaginas(processo, controle) {
                 paginasParaTroca.push(processo.paginas[i]);
             else if (controle.paginas.length < 10)
                 controle.paginas.unshift(processo.paginas[i]);
-        } else
+        }
+        else
             paginasParaTroca.push(processo.paginas[i]);
     }
     if (paginasParaTroca.length > 0) {
@@ -318,8 +344,9 @@ function stringMatrix(controle) {
             if (controle.matrixMemoria) {
                 if (controle.matrixMemoria[i][j] == -1) {
                     matrix += ("\xa0- ");
-                } else
-                    matrix += ("\xa0" + controle.matrixMemoria[i][j].valor + " ");
+                }
+                else
+                    matrix += ("\xa0" + controle.matrixMemoria[i][j].processo + " ");
             }
         }
         matrix += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
@@ -328,17 +355,18 @@ function stringMatrix(controle) {
 }
 
 function stringDisco(controle) {
-    let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
+    let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
         count++;
         if (controle.vetorDisco) {
             if (controle.vetorDisco[i] == -1) {
                 vetor += ("\xa0- ");
-            } else
+            }
+            else
                 vetor += ("\xa0" + controle.vetorDisco[i] + " ");
-            if (count % 3 == 0)
-                vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
+            if (count % 5 == 0)
+                vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
         }
     }
     return vetor;
@@ -373,9 +401,9 @@ function stringTabelaPaginas(controle) {
 function removePaginasDaMemoria(processo, controle) {
     let quantidadeDePaginas = processo.paginas.length;
     //console.log(processo.posicoesPaginas)
-    console.log(processo)
+
     for (let count = 0; count < quantidadeDePaginas; count++) {
-        console.log(processo.posicoesPaginas[count])
+        //console.log(processo.id)
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
         //console.log(i + " i===j " + j)
@@ -415,31 +443,54 @@ function temEspacoNoDisco(vetorDisco, id) {
     return -1;
 }
 
+function jaEstaNoDisco(vetorDisco, id) {
+    for (let i = 0; i < vetorDisco.length; i++) {
+        if (vetorDisco[i] == id)
+            return true;
+    }
+    return false;
+}
+
 function main() {
-    let n = 2;
+    let n = 10;
 
     let quantum = 2;
     let over = 1;
 
-    var teste = new Processo(1, 3, 4, 0, "asdf");
-    var teste2 = new Processo(2, 0, 2, 0, "hjkl");
-    // var teste3 = new Processo(3, 0, 4, 0, "ef");
-    // var teste = new Processo(1, 0, 4, 0, "ab");
-    // var teste2 = new Processo(2, 0, 4, 0, "cd");
-    // var teste3 = new Processo(3, 0, 4, 0, "ef");
+    var teste = new Processo(1, 0, 2, 3, "abcd");
+    var teste2 = new Processo(2, 0, 1, 2, "cdwe");
+    var teste3 = new Processo(3, 0, 2, 3, "uvbn");
+    var teste4 = new Processo(4, 0, 7, 10, "efaq");
+    var teste5 = new Processo(5, 0, 4, 6, "nhxv");
+    var teste6 = new Processo(6, 0, 3, 5, "lkcd");
+    var teste7 = new Processo(7, 0, 1, 2, "pouy");
+    var teste8 = new Processo(8, 0, 10, 12, "zywh");
+    var teste9 = new Processo(9, 0, 18, 2, "cu");
+    var teste10 = new Processo(10, 0, 10, 12, "zywh");
 
     var listaDeProcessos = new Array(n).fill(0);
+
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
-    // listaDeProcessos[2] = teste3;
+    listaDeProcessos[2] = teste3;
+    listaDeProcessos[3] = teste4;
+    listaDeProcessos[4] = teste5;
+    listaDeProcessos[5] = teste6;
+    listaDeProcessos[6] = teste7;
+    listaDeProcessos[7] = teste8;
+    listaDeProcessos[8] = teste9;
+    listaDeProcessos[9] = teste10;
+
+    ///var teste3 = new Processo(3, 0, 4, 0, "EF");
+
+    //listaDeProcessos[2] = teste3;
     /*
-    let testeeee = "ABCDEFGHIJ";
-    console.log(listaDeProcessos)
-    listaDeProcessos.splice(2)
-    console.log(listaDeProcessos)*/
+        let testeeee = "ABCDEFGHIJ";
+        console.log(listaDeProcessos)
+        listaDeProcessos.splice(2)
+        console.log(listaDeProcessos)*/
 
     let retorno = findavgTimeRR(listaDeProcessos, quantum, over);
-
     //console.log("Lista de retângulos:")
     //console.log(retorno.listaDeRetangulos)
     //console.log("TAT:")

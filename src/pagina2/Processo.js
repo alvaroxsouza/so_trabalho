@@ -1,16 +1,19 @@
+/* Classe de um processo que guarda os dados do mesmo.*/
 class Processo {
     constructor(id, tempoDeChegada = 0, tempoDeExecucao = 0, deadline = 0, paginas = "0") {
-        this.id = id;
-        this.tempoDeChegada = tempoDeChegada;
-        this.tempoDeExecucao = tempoDeExecucao;
-        this.tempoDeExecucaoAtual = tempoDeExecucao;
-        this.deadlineEstaEstourado = false;
-        this.deadline = deadline + tempoDeChegada;
-        this.tempoDeEspera = 0;
-        this.turnAround = 0;
-        this.tempoQueComecou = 0;
-        this.paginas = paginas.substring(0, 10);
-        this.posicoesPaginas = new Array(this.paginas.length).fill(-1);
+        this.id = id; //Id do processo
+        this.tempoDeChegada = tempoDeChegada; //Tempo de chegada do processo
+        this.tempoDeExecucao = tempoDeExecucao; //Tempo de execucao do processo
+        this.tempoDeExecucaoAtual = tempoDeExecucao; //Tempo restante de execucao do processo
+        this.deadlineEstaEstourado = false; //Guarda se o deadline no processo foi estourado
+        this.deadline = deadline + tempoDeChegada;  //Calcula em que momento o deadline vai acontecer
+        this.tempoDeEspera = 0; //Tempo de espera do processo
+        this.turnAround = 0; //Turn Around do processo
+        this.tempoQueComecou = 0; //Tempo que o processo comecou a executar
+        this.paginas = paginas.substring(0,10); //Guarda as páginas a serem usadas no processo
+        this.posicoesPaginas = new Array(this.paginas.length).fill('-1'); //Guarda as posicoes das paginas desse processo na matrix de memoria
+        this.foiExecutadoPriority = false;
+        this.ignorar = false;
     }
 
     getId() {
