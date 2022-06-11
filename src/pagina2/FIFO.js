@@ -283,6 +283,6 @@ function main() {
     console.log(retorno.Wt);*/
 }
 
-main();
+// main();
 
 export { findTurnAroundTimeFIFO }

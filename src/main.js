@@ -150,7 +150,6 @@ function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
             listaDeRetangulosGraficos = [];
-            limpaListaDeRetangulos(listaDeRetangulosGraficos);
             if (listaDeProcessos.length > 0) {
                 let obj = findTurnAroundTimeFIFO(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -163,7 +162,6 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "Round-Robin":
             listaDeRetangulosGraficos = [];
-            limpaListaDeRetangulos(listaDeRetangulosGraficos)
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -177,7 +175,6 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "EDF":
             listaDeRetangulosGraficos = [];
-            limpaListaDeRetangulos(listaDeRetangulosGraficos)
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
@@ -191,7 +188,6 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "SJF":
             listaDeRetangulosGraficos = [];
-            limpaListaDeRetangulos(listaDeRetangulosGraficos)
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeSJF(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;

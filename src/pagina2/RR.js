@@ -19,7 +19,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     for (let i = 0; i < quantidadeDeProcessos; i++)
         priorityEndline[i] = listaDeProcessos[i];
 
-    priorityEndline.sort(function (a, b) { //ordenando pelo deadline de cada processo
+    priorityEndline.sort(function(a, b) { //ordenando pelo deadline de cada processo
         if (a.tempoDeChegada > b.tempoDeChegada) {
             return 1;
         }
@@ -59,7 +59,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                         aux["indice"] = -1;
                         aux["controle"] = false;
                     }
-                    
+
                     acabou = false; // Existe um processo pendente
 
                     if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
@@ -143,7 +143,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
             break;
 
         if (!foiReordenado) {
-            priorityEndline.sort(function (a, b) { //ordenando pelo deadline de cada processo
+            priorityEndline.sort(function(a, b) { //ordenando pelo deadline de cada processo
                 if (a.id > b.id) {
                     return 1;
                 }
@@ -166,7 +166,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
 const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (priorityEndline)
-            //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
+        //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
             priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera - priorityEndline[i].tempoDeChegada;
     }
 
@@ -224,8 +224,7 @@ function preenchePaginasNaMemoria(processo, controle) {
     for (let u = 0; u < processo.posicoesPaginas.length; u++) { //Percorre as paginas do processo
         if (processo.posicoesPaginas[u] == -1) { //processo nunca esteve na matrix
             qtdDePaginasFaltantes.push(processo.paginas[u]);
-        }
-        else { //processo ja esteve na matrix
+        } else { //processo ja esteve na matrix
             let i = processo.posicoesPaginas[u].i;
             let j = processo.posicoesPaginas[u].j;
             if (controle.matrixMemoria[i][j].processo != processo.id) { //se o processo nao esta mais na posicao inicial
@@ -250,22 +249,22 @@ function preenchePaginasNaMemoria(processo, controle) {
                         controle.matrixMemoria[i][j] = -1;
                         controle.espacosVaziosMatrixMemoria++;
                     }
-                    if(processo.paginas.includes(controle.matrixMemoria[i][j].valor) && controle.matrixMemoria[i][j].processo != processo.id){
+                    if (processo.paginas.includes(controle.matrixMemoria[i][j].valor) && controle.matrixMemoria[i][j].processo != processo.id) {
                         controle.matrixMemoria[i][j].processo = processo.id;
                         qtdDePaginasFaltantes.splice(qtdDePaginasFaltantes.indexOf(controle.matrixMemoria[i][j].valor), 1);
                     }
-                        
+
                 }
             }
         }
     }
 
     let count = 0;
-    let tamOriginal=qtdDePaginasFaltantes.length;
-    if(qtdDePaginasFaltantes.length > 0) {
+    let tamOriginal = qtdDePaginasFaltantes.length;
+    if (qtdDePaginasFaltantes.length > 0) {
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
             for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
-               for (let u=0 ; u < qtdDePaginasFaltantes.length ; u++) {
+                for (let u = 0; u < qtdDePaginasFaltantes.length; u++) {
                     if (controle.matrixMemoria[i][j] == -1) { //Se a posição estiver livre
                         count++;
                         let pagina = {
@@ -280,7 +279,7 @@ function preenchePaginasNaMemoria(processo, controle) {
                         processo.posicoesPaginas[processo.paginas.indexOf(qtdDePaginasFaltantes[u])] = posicao; //Guarda a posição no processo
                         controle.espacosVaziosMatrixMemoria--; //Diminui em 1 o número de espaços livres
                         qtdDePaginasFaltantes.shift(); //Remove a página faltante do vetor de faltantes
-    
+
                         if (count == tamOriginal) //Se todas as páginas foram guardadas
                             return true;
                     }
@@ -299,9 +298,8 @@ function trataPaginas(processo, controle) {
                 paginasParaTroca.push(processo.paginas[i]);
             else if (controle.paginas.length < 10)
                 controle.paginas.unshift(processo.paginas[i]);
-        }
-        else
-            paginasParaTroca.push(processo.paginas[i]); 
+        } else
+            paginasParaTroca.push(processo.paginas[i]);
     }
     if (paginasParaTroca.length > 0) {
         for (let i = 0; i < paginasParaTroca.length; i++) {
@@ -319,8 +317,7 @@ function stringMatrix(controle) {
             if (controle.matrixMemoria) {
                 if (controle.matrixMemoria[i][j] == -1) {
                     matrix += ("\xa0- ");
-                }
-                else
+                } else
                     matrix += ("\xa0" + controle.matrixMemoria[i][j].valor + " ");
             }
         }
@@ -337,8 +334,7 @@ function stringDisco(controle) {
         if (controle.vetorDisco) {
             if (controle.vetorDisco[i] == -1) {
                 vetor += ("\xa0- ");
-            }
-            else
+            } else
                 vetor += ("\xa0" + controle.vetorDisco[i] + " ");
             if (count % 3 == 0)
                 vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
@@ -359,16 +355,16 @@ function stringTabelaPaginas(controle) {
         }
     }
 
-    if(controle.paginas.length < 10) {
-        for (let i = 0; i < (10 - controle.paginas.length); i++) { 
+    if (controle.paginas.length < 10) {
+        for (let i = 0; i < (10 - controle.paginas.length); i++) {
             count++;
-            if(controle.paginas){
+            if (controle.paginas) {
                 vetor += ("\xa0- ");
-                if(count%5==0)
+                if (count % 5 == 0)
                     vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
             }
         }
-    } 
+    }
 
     return vetor;
 }
@@ -388,14 +384,14 @@ function removePaginasDaMemoria(processo, controle) {
 }
 
 function printResultados(listaDeRetangulos) {
-    for(let i=0 ; i < listaDeRetangulos.length ; i++){
+    for (let i = 0; i < listaDeRetangulos.length; i++) {
         console.log("\n\n\n\n================== Tempo Atual: " + listaDeRetangulos[i].tempoInicial + " ==================\n")
         console.log(listaDeRetangulos[i].matrixMemoria)
         console.log("======================= Disco =======================\n")
         console.log(listaDeRetangulos[i].matrixDisco)
         console.log("====================== Páginas ======================\n")
         console.log(listaDeRetangulos[i].matrixPaginas)
-        
+
         console.log("===================== Retangulo =====================\n")
         console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Tempo Inicial: " + listaDeRetangulos[i].tempoInicial)
         console.log("\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0Tempo Final: " + listaDeRetangulos[i].tempoFinal)
@@ -431,11 +427,11 @@ function main() {
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
-/*
-    let testeeee = "ABCDEFGHIJ";
-    console.log(listaDeProcessos)
-    listaDeProcessos.splice(2)
-    console.log(listaDeProcessos)*/
+    /*
+        let testeeee = "ABCDEFGHIJ";
+        console.log(listaDeProcessos)
+        listaDeProcessos.splice(2)
+        console.log(listaDeProcessos)*/
 
     let retorno = findavgTimeRR(listaDeProcessos, quantum, over);
     //console.log("Lista de retângulos:")
@@ -446,6 +442,6 @@ function main() {
     //console.log(retorno.Wt);
 }
 
-main();
+// main();
 
 export { findavgTimeRR }
