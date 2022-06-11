@@ -90,6 +90,10 @@ function controlIniciarFolder() {
     iniciarProcessosFolder.open()
 }
 
+function algoritmoValido() {
+    return algoritmoOption == "FIFO" || "Round-Robin" || "EDF" || "SJF";
+}
+
 function addProcesso() {
     quantidadeDeProcessos++;
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
@@ -101,15 +105,26 @@ function addProcesso() {
         .onChange((value) => {
             processoCorrente.setTempoDeExecucao(value);
             processoCorrente.setTempoDeExecucaoAtual(value);
+            if (algoritmoValido() && listaDeProcessos.length > 0) {
+                executaAlgoritmoDeEscalonamento(algoritmoOption);
+            }
         });
     processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => {
             processoCorrente.setDeadline(value + processoCorrente.getTempoDeChegada(value));
+            if (algoritmoValido() && listaDeProcessos.length > 0) {
+                console.log(algoritmoOption)
+                executaAlgoritmoDeEscalonamento(algoritmoOption);
+            }
         });
     processoCorrenteController.add(processoVariaveis, 'Páginas')
         .onChange((value) => {
             processoCorrente.setPaginas(value);
             processoCorrente.posicoesPaginas = new Array(processoCorrente.paginas.length).fill("-1");
+            if (algoritmoValido() && listaDeProcessos.length > 0) {
+
+                executaAlgoritmoDeEscalonamento(algoritmoOption);
+            }
         });
     listaDeProcessos.push(processoCorrente)
 }
@@ -139,20 +154,10 @@ function iniciaRetangulos(listaDeRetangulos) {
     })
 }
 
-function limpaListaDeRetangulos(listaDeRetangulosGraficos) {
-    if (listaDeRetangulosGraficos) {
-        listaDeRetangulosGraficos.forEach((retanguloGrafico) => {
-            scene.remove(retanguloGrafico);
-        })
-    }
-}
-
 function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
-            listaDeRetangulosGraficos = [];
             if (listaDeProcessos.length > 0) {
-                console.log(listaDeProcessos)
                 let obj = findTurnAroundTimeFIFO(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
@@ -163,13 +168,8 @@ function executaAlgoritmoDeEscalonamento(value) {
             }
             break;
         case "Round-Robin":
-            listaDeRetangulosGraficos = [];
             if (listaDeProcessos.length > 0) {
-                console.log("Main1")
-                console.log(listaDeProcessos)
                 let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
-                console.log("Main2")
-                console.log(listaDeProcessos)
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
@@ -179,33 +179,26 @@ function executaAlgoritmoDeEscalonamento(value) {
             }
             break;
         case "EDF":
-            listaDeRetangulosGraficos = [];
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
-                console.log(obj);
             }
             if (listaDeRetangulos) {
                 iniciaRetangulos(listaDeRetangulos, listaDeRetangulosGraficos);
             }
             break;
         case "SJF":
-            listaDeRetangulosGraficos = [];
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeSJF(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
-                console.log(obj);
             }
             if (listaDeRetangulos) {
                 iniciaRetangulos(listaDeRetangulos, listaDeRetangulosGraficos);
             }
-            break;
-        default:
-            alert("Erro, escolha um algoritmo de escalonamento válido");
             break;
     }
 }
@@ -263,18 +256,10 @@ function desenhaExecucaoDeProcesso(retanguloMudanca, numeroDoProcesso = 0, tempo
     }
 }
 
-function limparCena() {
-    if (scene.children.length > 201) {
-        for (let i = scene.children.length - 1; i >= 201; i--) {
-            scene.remove(scene.children[i]);
-            flag = false;
-        }
-    }
-}
-
 function numeracaoDeEixos(value, interval) {
     const textoDeApresentacao = "" + value;
     const loader = new FontLoader();
+    const color = 0xFFd700
     let textMesh1 = new THREE.Mesh();
     loader.load('src/helvetiker_regular.typeface.json', function(font) {
         const textGeo = new TextGeometry(textoDeApresentacao, {
@@ -347,20 +332,22 @@ function render() {
     for (let i = 0; i < listaDeRetangulosGraficos.length; i++) {
         let retangulo = listaDeRetangulos[i];
         let retanguloGrafico = listaDeRetangulosGraficos[i];
-        if (retangulo.isSobrecarga()) {
-            desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
-        } else if (retangulo.isDeadlineBool()) {
-            desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xAAAAAA);
-        } else {
-            desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0x00FF00);
+        if (retangulo) {
+            if (retangulo.isSobrecarga()) {
+                desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xaa0000);
+            } else if (retangulo.isDeadlineBool()) {
+                desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0xAAAAAA);
+            } else {
+                desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0x00FF00);
+            }
+            if (podeEscrever) {
+                mostrarTextoDeVariaveis("TurnAround\n", turnAround.toFixed(2));
+                mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime.toFixed(2), 3);
+                velocidadeAtual += 0.0;
+                podeEscrever = false;
+            }
+            scene.add(retanguloGrafico);
         }
-        if (podeEscrever) {
-            mostrarTextoDeVariaveis("TurnAround\n", turnAround.toFixed(2));
-            mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime.toFixed(2), 3);
-            velocidadeAtual += 0.0;
-            podeEscrever = false;
-        }
-        scene.add(retanguloGrafico);
         // atualizarCenaMemoria(textMemoriaScene, retangulo.matrix);
     }
     renderer.render(scene, camera);
@@ -388,11 +375,19 @@ function controle(event) {
     }
 }
 
+function limparCena() {
+    if (scene.children.length > 201) {
+        for (let i = scene.children.length - 1; i >= 201; i--) {
+            scene.remove(scene.children[i]);
+            flag = false;
+        }
+    }
+}
+
 function iniciar() {
     limparCena();
     velocidadeAtual = 0.0;
     render();
-    //renderMemoria();
 }
 
 function init() {
@@ -401,7 +396,6 @@ function init() {
     controlAlgoritmosFolder();
     controlIniciarFolder();
     iniciarCena();
-    //iniciarCenaMemoria();
 }
 
 init();
