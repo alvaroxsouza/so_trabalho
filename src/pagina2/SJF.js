@@ -67,7 +67,7 @@ const findWaitingTime = (listaDeProcessos, controle) => {
                 if (index != -1) //tem espaço no disco
                     controle.vetorDisco[index] = vetorPrincipal[0].id;
                 else
-                    return listaDeRetangulos;
+                    priorityEndline[i].ignorar = true;
 
                 preenchePaginasNaMemoria(vetorPrincipal[0], controle);
 
@@ -357,6 +357,6 @@ function main() {
      console.log(retorno.Wt);*/
 }
 
-// main();
+main();
 
 export { findavgTimeSJF }
