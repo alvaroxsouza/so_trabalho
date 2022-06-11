@@ -174,6 +174,7 @@ const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
 
 // Função para calcular o tempo médio
 const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
+    console.log(listaDeProcessos)
     let quantidadeDeProcessos = listaDeProcessos.length;
 
     let total_wt = 0,
@@ -415,30 +416,29 @@ function temEspacoNoDisco(vetorDisco, id) {
 }
 
 function main() {
-    let n = 3;
+    let n = 2;
 
     let quantum = 2;
     let over = 1;
 
-    var teste = new Processo(1, 0, 4, 0, "ab");
-    var teste2 = new Processo(2, 0, 4, 0, "cd");
-    var teste3 = new Processo(3, 0, 4, 0, "ef");
+    var teste = new Processo(1, 3, 4, 0, "asdf");
+    var teste2 = new Processo(2, 0, 2, 0, "hjkl");
+    // var teste3 = new Processo(3, 0, 4, 0, "ef");
+    // var teste = new Processo(1, 0, 4, 0, "ab");
+    // var teste2 = new Processo(2, 0, 4, 0, "cd");
+    // var teste3 = new Processo(3, 0, 4, 0, "ef");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
-    listaDeProcessos[2] = teste3;
-    console.log("Primeiro")
+    // listaDeProcessos[2] = teste3;
+    /*
+    let testeeee = "ABCDEFGHIJ";
     console.log(listaDeProcessos)
-        /*
-        let testeeee = "ABCDEFGHIJ";
-        console.log(listaDeProcessos)
-        listaDeProcessos.splice(2)
-        console.log(listaDeProcessos)*/
+    listaDeProcessos.splice(2)
+    console.log(listaDeProcessos)*/
 
     let retorno = findavgTimeRR(listaDeProcessos, quantum, over);
-    console.log("Segundo")
-    console.log(listaDeProcessos)
 
     //console.log("Lista de retângulos:")
     //console.log(retorno.listaDeRetangulos)

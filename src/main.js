@@ -73,7 +73,6 @@ function controlAlgoritmosFolder() {
     algoritmosFolder.add(entradaVazia, 'Algoritmo').options(algoritmosDeEscalonamento)
         .onChange((value) => {
             algoritmoOption = value;
-            executaAlgoritmoDeEscalonamento(value, listaDeProcessos)
         })
     algoritmosFolder.open()
 }
@@ -82,7 +81,6 @@ function controlIniciarFolder() {
     iniciarProcessosFolder = gui.addFolder('Iniciar');
     let iniciarProcessos = { Inicia: iniciar, 'Velocidade da animação': 0 };
     iniciarProcessosFolder.add(iniciarProcessos, 'Inicia');
-    let valorAnterior = 0;
     iniciarProcessosFolder.add(iniciarProcessos, 'Velocidade da animação', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => {
             velocidadeDaAnimacao = value;
@@ -105,26 +103,15 @@ function addProcesso() {
         .onChange((value) => {
             processoCorrente.setTempoDeExecucao(value);
             processoCorrente.setTempoDeExecucaoAtual(value);
-            if (algoritmoValido() && listaDeProcessos.length > 0) {
-                executaAlgoritmoDeEscalonamento(algoritmoOption);
-            }
         });
     processoCorrenteController.add(processoVariaveis, 'Deadline', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => {
             processoCorrente.setDeadline(value + processoCorrente.getTempoDeChegada(value));
-            if (algoritmoValido() && listaDeProcessos.length > 0) {
-                console.log(algoritmoOption)
-                executaAlgoritmoDeEscalonamento(algoritmoOption);
-            }
         });
     processoCorrenteController.add(processoVariaveis, 'Páginas')
         .onChange((value) => {
             processoCorrente.setPaginas(value);
             processoCorrente.posicoesPaginas = new Array(processoCorrente.paginas.length).fill("-1");
-            if (algoritmoValido() && listaDeProcessos.length > 0) {
-
-                executaAlgoritmoDeEscalonamento(algoritmoOption);
-            }
         });
     listaDeProcessos.push(processoCorrente)
 }
@@ -154,11 +141,18 @@ function iniciaRetangulos(listaDeRetangulos) {
     })
 }
 
+function remapeamentoDeProcesso(listaDeProcessos) {
+    return listaDeProcessos.map((processo) => {
+        return processo = new Processo(processo.getId(), processo.getTempoDeChegada(), processo.getTempoDeExecucao(), processo.getDeadline(), processo.getPaginas());
+    })
+}
+
 function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
             if (listaDeProcessos.length > 0) {
-                let obj = findTurnAroundTimeFIFO(listaDeProcessos);
+                let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                let obj = findTurnAroundTimeFIFO(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
@@ -169,7 +163,8 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "Round-Robin":
             if (listaDeProcessos.length > 0) {
-                let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                let obj = findavgTimeRR(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
@@ -180,7 +175,8 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "EDF":
             if (listaDeProcessos.length > 0) {
-                let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                let obj = findavgTimeEDF(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
@@ -191,7 +187,8 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "SJF":
             if (listaDeProcessos.length > 0) {
-                let obj = findavgTimeSJF(listaDeProcessos);
+                let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                let obj = findavgTimeSJF(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
@@ -348,7 +345,6 @@ function render() {
             }
             scene.add(retanguloGrafico);
         }
-        // atualizarCenaMemoria(textMemoriaScene, retangulo.matrix);
     }
     renderer.render(scene, camera);
 }
@@ -386,6 +382,7 @@ function limparCena() {
 
 function iniciar() {
     limparCena();
+    executaAlgoritmoDeEscalonamento(algoritmoOption, listaDeProcessos)
     velocidadeAtual = 0.0;
     render();
 }
