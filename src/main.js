@@ -38,7 +38,6 @@ let algoritmoOption;
 let listaDeRetangulos = []
 let quantidadeDeProcessos = 0;
 const listaDeProcessos = [];
-let textMemoriaScene;
 let turnAround = 0;
 let waitingTime = 0;
 const sistema = new SistemaInput();
@@ -87,10 +86,6 @@ function controlIniciarFolder() {
     iniciarProcessosFolder.open()
 }
 
-function algoritmoValido() {
-    return algoritmoOption == "FIFO" || "Round-Robin" || "EDF" || "SJF";
-}
-
 function addProcesso() {
     quantidadeDeProcessos++;
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
@@ -126,24 +121,29 @@ function removeProcesso() {
 function iniciaRetangulos(listaDeRetangulos) {
     listaDeRetangulos.forEach(r => {
         let ret;
-        if (r.isSobrecarga()) {
+        if (r.isSobrecarga() || r.isSobrecarga() && r.isSobrecarga()) {
             ret = criaRetangulo(0.0, 0.0, 0.0, 0xaa0000);
-        } else if (r.isDeadlineBool()) {
+        } else if (r.isDeadlineBool() && !r.isSobrecarga()) {
             ret = criaRetangulo(0.0, 0.0, 0.0, 0xAAAAAA);
         } else {
             ret = criaRetangulo(0.0, 0.0, 0.0);
         }
         listaDeRetangulosGraficos.push(ret);
     })
-    listaDeRetangulosGraficos.forEach(retGraf => {
-        scene.add(retGraf);
-    })
 }
 
 function remapeamentoDeProcesso(listaDeProcessos) {
-    return listaDeProcessos.map((processo) => {
-        return processo = new Processo(processo.getId(), processo.getTempoDeChegada(), processo.getTempoDeExecucao(), processo.getDeadline(), processo.getPaginas());
-    })
+    let newList = [];
+    for (let i = 0; i < listaDeProcessos.length; i++) {
+        let processo = listaDeProcessos[i];
+        newList.push(new Processo(processo.getId(), processo.getTempoDeChegada(), processo.getTempoDeExecucao(), processo.getDeadline(), processo.getPaginas()));
+    }
+    return newList;
+    /* return listaDeProcessos.map((processo) => {
+        processo = 
+        console.log(processo);
+        return processo;
+    }) */
 }
 
 function executaAlgoritmoDeEscalonamento(value) {
@@ -174,9 +174,12 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "EDF":
             if (listaDeProcessos.length > 0) {
+                /* console.log(listaDeProcessos);
                 let newlist = remapeamentoDeProcesso(listaDeProcessos);
-                let obj = findavgTimeEDF(newlist, sistema.getQuantum(), sistema.getSobrecarga());
+                console.log(newlist) */
+                let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
+                console.log(listaDeRetangulos)
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
             }
@@ -405,74 +408,3 @@ function init() {
 }
 
 init();
-
-/* function atualizarCenaMemoria(textMemoriaScene, newText) {
-const loader = new FontLoader();
-loader.load('src/helvetiker_regular.typeface.json', function(font) {
-    const textGeo = new TextGeometry(newText, {
-        font: font,
-            size: 2.0,
-            height: 0.02,
-            curveSegments: 12,
-            bevelThickness: 0.1,
-            bevelSize: 0.01,
-            bevelEnabled: true
-        });
-
-        textGeo.computeBoundingBox();
-        textMemoriaScene.geometry = textGeo;
-    })
-    sceneMemoria.add(textMemoriaScene);
-    console.log(sceneMemoria.children.length);
-}
-
-function criaTextMemoria() {
-    const textoDeApresentacao = "";
-    const loader = new FontLoader();
-    let textMesh1 = new THREE.Mesh();
-    loader.load('src/helvetiker_regular.typeface.json', function(font) {
-        const textGeo = new TextGeometry(textoDeApresentacao, {
-            font: font,
-            size: 2.0,
-            height: 0.02,
-            curveSegments: 12,
-            bevelThickness: 0.1,
-            bevelSize: 0.01,
-            bevelEnabled: true
-        });
-
-        textGeo.computeBoundingBox();
-
-        const materials = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, wireframe: true });
-
-        textMesh1.geometry = textGeo;
-        textMesh1.material = materials;
-
-        textMesh1.position.x += 0;
-        textMesh1.position.y += 30;
-    })
-    return textMesh1;
-}
-
-function renderMemoria() {
-    requestAnimationFrame(renderMemoria)
-    rendererMemoria.render(sceneMemoria, cameraMemoria);
-}
-
-function iniciarCenaMemoria() {
-    rendererMemoria = new THREE.WebGLRenderer({ antialias: true });
-    rendererMemoria.setClearColor(new THREE.Color(0.0, 0.0, 0.0));
-
-    const elementMemoria = document.getElementById('mem-content');
-
-    elementMemoria.appendChild(rendererMemoria.domElement);
-
-    rendererMemoria.setSize(300, 300);
-    cameraMemoria = new THREE.OrthographicCamera(ESQUERDA_CAMERA, DIREITA_CAMERA, CIMA_CAMERA, BAIXO_CAMERA, LARGURA / ALTURA, 0);
-    sceneMemoria = new THREE.Scene();
-    sceneMemoria.add(cameraMemoria);
-
-    textMemoriaScene = criaTextMemoria();
-    sceneMemoria.add(textMemoriaScene)
-    rendererMemoria.render(sceneMemoria, cameraMemoria);
-} */

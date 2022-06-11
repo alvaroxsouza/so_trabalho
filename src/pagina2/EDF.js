@@ -270,6 +270,7 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
 
 // Função para calcular o tempo médio
 const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
+    console.log(listaDeProcessos)
     let quantidadeDeProcessos = listaDeProcessos.length;
     let total_wt = 0,
         total_tat = 0;
