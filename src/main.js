@@ -10,7 +10,6 @@ import { findavgTimeSJF } from './pagina2/SJF.js';
 import { findavgTimeRR } from './pagina2/RR.js';
 import { findavgTimeEDF } from './pagina2/EDF.js';
 import { criaRetangulo, mudaGeometria } from './RetanguloObjetoGrafico.js';
-import { Material } from 'three';
 
 const LIMITE_SUPERIOR = 1000;
 const LIMITE_INFERIOR = 0;
@@ -28,7 +27,7 @@ const gui = new GUI({ name: "Escalonamento", width: 300 });
 
 /* Configurações da renderização */
 let scene, renderer, camera, axesHelper, controleDaCamera;
-let sceneMemoria, rendererMemoria, cameraMemoria, controleDaCameraMemoria;
+let turnAroundGrafico, waitingTimeGrafico;
 let podeEscrever = false,
     flag = false;
 let listaDeRetangulosGraficos = [];
@@ -207,10 +206,10 @@ function mostrarTextoDeVariaveis(text = "", value, interval = 0) {
     loader.load('src/helvetiker_regular.typeface.json', function(font) {
         const textGeo = new TextGeometry(textoDeApresentacao, {
             font: font,
-            size: 0.5,
-            height: 0.02,
-            curveSegments: 12,
-            bevelThickness: 0.1,
+            size: 0.55,
+            height: 0.001,
+            curveSegments: 20,
+            bevelThickness: 0.2,
             bevelSize: 0.01,
             bevelEnabled: true
         });
@@ -226,11 +225,11 @@ function mostrarTextoDeVariaveis(text = "", value, interval = 0) {
         textMesh1.position.y = 10 - interval;
     })
 
-    scene.add(textMesh1);
+    return textMesh1;
 }
 
 function desenhaExecucaoDeProcesso(retanguloMudanca, numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
-    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 100000);
+    velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 10000);
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
 
     const tamanhoDoRetangulo = 2;
@@ -338,8 +337,18 @@ function render() {
                 desenhaExecucaoDeProcesso(retanguloGrafico, retangulo.id, retangulo.tempoInicial, retangulo.tempoFinal, 0x00FF00);
             }
             if (podeEscrever) {
-                mostrarTextoDeVariaveis("TurnAround\n", turnAround.toFixed(2));
-                mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime.toFixed(2), 3);
+                if (turnAroundGrafico) {
+                    console.log("Entrou aqui 1")
+                    scene.remove(turnAroundGrafico);
+                }
+                if (waitingTimeGrafico) {
+                    console.log("Entrou aqui 2")
+                    scene.remove(waitingTimeGrafico);
+                }
+                turnAroundGrafico = mostrarTextoDeVariaveis("TurnAround\n", turnAround.toFixed(2));
+                scene.add(turnAroundGrafico);
+                waitingTimeGrafico = mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime.toFixed(2), 3);
+                scene.add(waitingTimeGrafico);
                 velocidadeAtual += 0.0;
                 podeEscrever = false;
             }
@@ -382,7 +391,7 @@ function limparCena() {
 
 function iniciar() {
     limparCena();
-    executaAlgoritmoDeEscalonamento(algoritmoOption, listaDeProcessos)
+    executaAlgoritmoDeEscalonamento(algoritmoOption, listaDeProcessos);
     velocidadeAtual = 0.0;
     render();
 }
