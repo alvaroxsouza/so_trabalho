@@ -174,9 +174,6 @@ function executaAlgoritmoDeEscalonamento(value) {
             break;
         case "EDF":
             if (listaDeProcessos.length > 0) {
-                /* console.log(listaDeProcessos);
-                let newlist = remapeamentoDeProcesso(listaDeProcessos);
-                console.log(newlist) */
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 console.log(listaDeRetangulos)

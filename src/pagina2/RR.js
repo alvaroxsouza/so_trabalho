@@ -19,7 +19,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     for (let i = 0; i < quantidadeDeProcessos; i++)
         priorityEndline[i] = listaDeProcessos[i];
 
-    priorityEndline.sort(function (a, b) {
+    priorityEndline.sort(function(a, b) {
         if (a.tempoDeChegada > b.tempoDeChegada) {
             return 1;
         }
@@ -33,22 +33,22 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     let controleTempo = false;
     let foiReordenado = false;
     //Continua percorrendo os processos de maneira round robin até que todos eles estejam completos
-    for (let loop = 0; ; loop++) {
+    for (let loop = 0;; loop++) {
         // Percorre todos os processos um por um repetidamente
         for (let i = 0; i < quantidadeDeProcessos; i++) {
             //tempo atual maior ou igual o tempo de chegada
             //console.log("Tempo corrente: " + tempoCorrente + " Tempo de chegada do processo " + priorityEndline[i].id + ": " + priorityEndline[i].tempoDeChegada + " Foi executado? " + priorityEndline[i].foiExecutadoPriority)
             if (priorityEndline[i].foiExecutadoPriority == false && priorityEndline[i].ignorar == false) {
-                
+
                 if (tempoCorrente >= priorityEndline[i].tempoDeChegada) {
-                    if(!jaEstaNoDisco(controle.vetorDisco, priorityEndline[i].id)){
+                    if (!jaEstaNoDisco(controle.vetorDisco, priorityEndline[i].id)) {
                         let index = temEspacoNoDisco(controle.vetorDisco, priorityEndline[i].id); //Procura posição no disco
                         if (index != -1) //Tem espaço no disco
                             controle.vetorDisco[index] = priorityEndline[i].id;
                         else
                             priorityEndline[i].ignorar = true;
                     }
-    
+
                     if (controleTempo) {
                         tempoCorrente += 1;
                         controleTempo = false;
@@ -111,6 +111,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                             tempoCorrente = tempoCorrente + priorityEndline[i].tempoDeExecucaoAtual;
                             // O tempo de espera é o tempo atual menos o tempo usado por este processo
                             priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao - priorityEndline[i].tempoDeChegada;
+                            console.log("priorityEndline[i].tempoDeEspera = " + priorityEndline[i].tempoDeEspera);
                             // À medida que o processo é totalmente executado faz seu tempo de execução restante = 0
                             priorityEndline[i].tempoDeExecucaoAtual = 0;
 
@@ -149,7 +150,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
         }
 
         if (!foiReordenado) {
-            priorityEndline.sort(function (a, b) { //ordenando pelo id de cada processo
+            priorityEndline.sort(function(a, b) { //ordenando pelo id de cada processo
                 if (a.id > b.id) {
                     return 1;
                 }
@@ -166,7 +167,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
         let contador = 0;
         //console.log(contador)
         for (let j = 0; j < priorityEndline.length; j++) {
-            if (priorityEndline[j].ignorar == false){
+            if (priorityEndline[j].ignorar == false) {
                 if (priorityEndline[j].foiExecutadoPriority == false)
                     acabou = false;
             }
@@ -187,9 +188,13 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
 // Função para calcular turn around time
 const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
     for (let i = 0; i < quantidadeDeProcessos; i++) {
-        if (priorityEndline && priorityEndline[i].ignorar == false)
-            //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
-            priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera - priorityEndline[i].tempoDeChegada;
+        if (priorityEndline && priorityEndline[i].ignorar == false) {
+            console.log(priorityEndline[i].tempoDeExecucao)
+            console.log(priorityEndline[i].tempoDeEspera)
+            console.log(priorityEndline[i].tempoDeChegada)
+            priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera;
+        }
+        //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
     }
 
 }
@@ -226,10 +231,14 @@ const findavgTimeRR = (listaDeProcessos, quantum = 0, over = 0) => {
 
     // Calcular o tempo total de espera e o total turn around time
     for (let i = 0; i < quantidadeDeProcessos; i++) {
-        if(priorityEndline[i].ignorar == false){
+        if (priorityEndline[i].ignorar == false) {
+
             total_wt = total_wt + priorityEndline[i].tempoDeEspera;
             total_tat = total_tat + priorityEndline[i].turnAround;
-        } 
+
+            /* console.log("total_wt = " + (total_wt + priorityEndline[i].tempoDeEspera));
+            console.log("total_tat = " + (total_tat + priorityEndline[i].turnAround)); */
+        }
     }
 
     let valorWtTat = {
@@ -250,8 +259,7 @@ function preenchePaginasNaMemoria(processo, controle) {
     for (let u = 0; u < processo.posicoesPaginas.length; u++) { //Percorre as paginas do processo
         if (processo.posicoesPaginas[u] == -1) { //processo nunca esteve na matrix
             qtdDePaginasFaltantes.push(processo.paginas[u]);
-        }
-        else { //processo ja esteve na matrix
+        } else { //processo ja esteve na matrix
             let i = processo.posicoesPaginas[u].i;
             let j = processo.posicoesPaginas[u].j;
             if (controle.matrixMemoria[i][j].processo != processo.id) { //se o processo nao esta mais na posicao inicial
@@ -283,7 +291,7 @@ function preenchePaginasNaMemoria(processo, controle) {
                 }
             }
         }
-    }  
+    }
 
     let count = 0;
     let tamOriginal = qtdDePaginasFaltantes.length;
@@ -324,8 +332,7 @@ function trataPaginas(processo, controle) {
                 paginasParaTroca.push(processo.paginas[i]);
             else if (controle.paginas.length < 10)
                 controle.paginas.unshift(processo.paginas[i]);
-        }
-        else
+        } else
             paginasParaTroca.push(processo.paginas[i]);
     }
     if (paginasParaTroca.length > 0) {
@@ -344,8 +351,7 @@ function stringMatrix(controle) {
             if (controle.matrixMemoria) {
                 if (controle.matrixMemoria[i][j] == -1) {
                     matrix += ("\xa0- ");
-                }
-                else
+                } else
                     matrix += ("\xa0" + controle.matrixMemoria[i][j].processo + " ");
             }
         }
@@ -362,8 +368,7 @@ function stringDisco(controle) {
         if (controle.vetorDisco) {
             if (controle.vetorDisco[i] == -1) {
                 vetor += ("\xa0- ");
-            }
-            else
+            } else
                 vetor += ("\xa0" + controle.vetorDisco[i] + " ");
             if (count % 5 == 0)
                 vetor += "\n\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";

@@ -90,7 +90,7 @@ const findWaitingTime = (listaDeProcessos, controle) => {
                     for (let i = 0; i < quantidadeDeProcessos; i++) {
                         if (vetorPrincipal[0]) {
                             if (listaDeProcessos[i].id == vetorPrincipal[0].id) {
-                                listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao;
+                                listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao - listaDeProcessos[i].tempoDeChegada;
                             }
                         }
                     }
@@ -138,7 +138,7 @@ const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
 
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (listaDeProcessos) {
-            listaDeProcessos[i].turnAround = listaDeProcessos[i].tempoDeExecucao + listaDeProcessos[i].tempoDeEspera - listaDeProcessos[i].tempoDeChegada;
+            listaDeProcessos[i].turnAround = listaDeProcessos[i].tempoDeExecucao + listaDeProcessos[i].tempoDeEspera;
         }
     }
 }
@@ -156,9 +156,9 @@ const findavgTimeSJF = (listaDeProcessos) => {
     let controle = {
         matrixMemoria: matrix,
         espacosVaziosMatrixMemoria: 50,
-        //Vetor de disco (memória virtual) - capacidade de 12 processos
+        //Vetor de disco (memória virtual) - capacidade de 10 processos
         //Quando um processo chega, ele entra no disco
-        vetorDisco: new Array(12).fill(-1),
+        vetorDisco: new Array(10).fill(-1),
         //Vetor auxiliar (tabela) de páginas com 10 posições
         //Quando é a vez dele de executar, testa se as páginas estão no vetor
         paginas: [] //sempre se adiciona com unshift
@@ -268,7 +268,7 @@ function stringMatrix(controle) {
 function stringDisco(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
         count++;
         if (controle.vetorDisco) {
             if (controle.vetorDisco[i] == -1) {

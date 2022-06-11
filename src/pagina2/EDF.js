@@ -146,7 +146,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                         for (let i = 0; i < quantidadeDeProcessos; i++) {
                             if (vetorPrincipal[0]) {
                                 if (listaDeProcessos[i].id == vetorPrincipal[0].id) {
-                                    listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao - listaDeProcessos[i].tempoDeChegada;;
+                                    listaDeProcessos[i].tempoDeEspera = tempoCorrente - vetorPrincipal[0].tempoDeExecucao - listaDeProcessos[i].tempoDeChegada;
                                 }
                             }
                         }
@@ -283,9 +283,9 @@ const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
     let controle = {
         matrixMemoria: matrix,
         espacosVaziosMatrixMemoria: 50,
-        //Vetor de disco (memória virtual) - capacidade de 12 processos
+        //Vetor de disco (memória virtual) - capacidade de 10 processos
         //Quando um processo chega, ele entra no disco
-        vetorDisco: new Array(12).fill(-1),
+        vetorDisco: new Array(10).fill(-1),
         //Vetor auxiliar (tabela) de páginas com 10 posições
         //Quando é a vez dele de executar, testa se as páginas estão no vetor
         paginas: [] //sempre se adiciona com unshift
@@ -370,10 +370,11 @@ function trataPaginas(processo, controle) {
 }
 
 function removePaginasDaMemoria(processo, controle) {
-    let quantidadeDePaginas = processo.paginas.length;
-    for (let count = 0; count < quantidadeDePaginas; count++) {
+    for (let count = 0; count < processo.paginas.length; count++) {
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
+        console.log(processo)
+        console.log(controle)
         controle.matrixMemoria[i][j] = -1;
         controle.espacosVaziosMatrixMemoria++;
         processo.posicoesPaginas[count] = -1;
@@ -400,7 +401,7 @@ function stringMatrix(controle) {
 function stringDisco(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 10; i++) {
         count++;
         if (controle.vetorDisco) {
             if (controle.vetorDisco[i] == -1) {
@@ -468,19 +469,21 @@ function temEspacoNoDisco(vetorDisco) {
 }
 
 function main() {
-    let n = 3;
+    let n = 4;
 
     let quantum = 2;
     let over = 1;
 
-    var teste = new Processo(1, 0, 4, 10, "ABCD");
-    var teste2 = new Processo(2, 2, 6, 8, "MFJD");
-    var teste3 = new Processo(3, 4, 7, 10, "ÇVCX976");
+    var teste = new Processo(1, 11, 5, 6, "ABCD");
+    var teste2 = new Processo(2, 12, 4, 5, "MFJD");
+    var teste3 = new Processo(3, 8, 2, 3, "ÇVCX");
+    var teste4 = new Processo(3, 3, 4, 6, "hijk");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
+    listaDeProcessos[3] = teste4;
 
     let retorno = findavgTimeEDF(listaDeProcessos, quantum, over);
 
@@ -494,6 +497,6 @@ function main() {
     //console.log(retorno.Wt);
 }
 
-// main();
+main();
 
 export { findavgTimeEDF }
