@@ -9,8 +9,8 @@ class Processo {
         this.tempoDeEspera = 0;
         this.turnAround = 0;
         this.tempoQueComecou = 0;
-        this.paginas = paginas.substring(0,10);
-        this.posicoesPaginas = new Array(this.paginas.length).fill('-1');
+        this.paginas = paginas.substring(0, 10);
+        this.posicoesPaginas = new Array(this.paginas.length).fill(-1);
     }
 
     getId() {

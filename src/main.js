@@ -94,7 +94,7 @@ function addProcesso() {
     quantidadeDeProcessos++;
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0, 'Páginas': "" }
-    const processoCorrente = new Processo(quantidadeDeProcessos - 1)
+    const processoCorrente = new Processo(quantidadeDeProcessos)
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
@@ -108,7 +108,8 @@ function addProcesso() {
         });
     processoCorrenteController.add(processoVariaveis, 'Páginas')
         .onChange((value) => {
-            processoCorrente.setPaginas(value)
+            processoCorrente.setPaginas(value);
+            processoCorrente.posicoesPaginas = new Array(processoCorrente.paginas.length).fill("-1");
         });
     listaDeProcessos.push(processoCorrente)
 }
@@ -151,6 +152,7 @@ function executaAlgoritmoDeEscalonamento(value) {
         case "FIFO":
             listaDeRetangulosGraficos = [];
             if (listaDeProcessos.length > 0) {
+                console.log(listaDeProcessos)
                 let obj = findTurnAroundTimeFIFO(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
@@ -163,11 +165,14 @@ function executaAlgoritmoDeEscalonamento(value) {
         case "Round-Robin":
             listaDeRetangulosGraficos = [];
             if (listaDeProcessos.length > 0) {
+                console.log("Main1")
+                console.log(listaDeProcessos)
                 let obj = findavgTimeRR(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                console.log("Main2")
+                console.log(listaDeProcessos)
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
-                console.log(obj);
             }
             if (listaDeRetangulos) {
                 iniciaRetangulos(listaDeRetangulos, listaDeRetangulosGraficos);

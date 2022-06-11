@@ -3,13 +3,13 @@ import * as THREE from 'three';
 
 function mudaGeometria(retang, posicaoInicialX = 0, velocidadeAtual = 0, posicaoMinY = 0, posicaoMaxY = 0, color = 0x00FF00) {
     const verticesTriangulo = [];
-    verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
-    verticesTriangulo.push(velocidadeAtual, posicaoMinY, 0.0);
-    verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
+    verticesTriangulo.push(posicaoInicialX, posicaoMinY - 2, 0.0);
+    verticesTriangulo.push(velocidadeAtual, posicaoMinY - 2, 0.0);
+    verticesTriangulo.push(velocidadeAtual, posicaoMaxY - 2, 0.0);
 
-    verticesTriangulo.push(velocidadeAtual, posicaoMaxY, 0.0);
-    verticesTriangulo.push(posicaoInicialX, posicaoMaxY, 0.0);
-    verticesTriangulo.push(posicaoInicialX, posicaoMinY, 0.0);
+    verticesTriangulo.push(velocidadeAtual, posicaoMaxY - 2, 0.0);
+    verticesTriangulo.push(posicaoInicialX, posicaoMaxY - 2, 0.0);
+    verticesTriangulo.push(posicaoInicialX, posicaoMinY - 2, 0.0);
 
     retang.geometry.setAttribute('position', new THREE.Float32BufferAttribute(verticesTriangulo, 3))
     retang.material = new THREE.MeshBasicMaterial({

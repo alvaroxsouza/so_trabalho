@@ -372,8 +372,9 @@ function stringTabelaPaginas(controle) {
 function removePaginasDaMemoria(processo, controle) {
     let quantidadeDePaginas = processo.paginas.length;
     //console.log(processo.posicoesPaginas)
-
+    console.log(processo)
     for (let count = 0; count < quantidadeDePaginas; count++) {
+        console.log(processo.posicoesPaginas[count])
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
         //console.log(i + " i===j " + j)
@@ -419,21 +420,26 @@ function main() {
     let quantum = 2;
     let over = 1;
 
-    var teste = new Processo(1, 0, 4, 0, "ABCD");
-    var teste2 = new Processo(2, 2, 6, 0, "MDFJ");
-    var teste3 = new Processo(3, 4, 7, 0, "ÇVCX976");
+    var teste = new Processo(1, 0, 4, 0, "ab");
+    var teste2 = new Processo(2, 0, 4, 0, "cd");
+    var teste3 = new Processo(3, 0, 4, 0, "ef");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
-    /*
+    console.log("Primeiro")
+    console.log(listaDeProcessos)
+        /*
         let testeeee = "ABCDEFGHIJ";
         console.log(listaDeProcessos)
         listaDeProcessos.splice(2)
         console.log(listaDeProcessos)*/
 
     let retorno = findavgTimeRR(listaDeProcessos, quantum, over);
+    console.log("Segundo")
+    console.log(listaDeProcessos)
+
     //console.log("Lista de retângulos:")
     //console.log(retorno.listaDeRetangulos)
     //console.log("TAT:")
@@ -442,6 +448,6 @@ function main() {
     //console.log(retorno.Wt);
 }
 
-// main();
+main();
 
 export { findavgTimeRR }
