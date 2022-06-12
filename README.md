@@ -11,10 +11,8 @@ Alunos:
 
 # Para executar o projeto
 
-Basta apenas digitar no terminal ```npm install``` para fazer o download das dependências ou baixando direto do repositório [click aqui](https://github.com/alvaroxsouza/so_trabalho.git).
-
-Também possuímos esta mesma aplicação no GitHub Pages. [Clicke Aqui](https://alvaroxsouza.github.io/so_trabalho/).
-
+Basta apenas digitar no terminal ```npm install``` para fazer o download das dependências ou baixando direto do repositório <a href="https://github.com/alvaroxsouza/so_trabalho.git"  target="_blank">Clique Aqui</a>.
+Também possuímos esta mesma aplicação no GitHub-Pages. <a href="https://alvaroxsouza.github.io/so_trabalho/"  target="_blank">Clique Aqui</a>.
 # Detalhes do Projeto
 
 Possuimos as implementações de quatro algoritmos de escalonamento, os quais seguem:
