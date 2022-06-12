@@ -125,6 +125,10 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                 //Se o tempo de execução restante for menor ou igual ao quantum
                 //o último quantum desse processo será executado
                 else {
+                    if (vetorPrincipal[0].tempoDeExecucao == vetorPrincipal[0].tempoDeExecucaoAtual) {
+                        preenchePaginasNaMemoria(vetorPrincipal[0], controle);
+                    }
+
                     let matrixMemoria = stringMatrix(controle);
                     let matrixDisco = stringDisco(controle);
                     let matrixPaginas = stringTabelaPaginas(controle);
@@ -154,7 +158,6 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
 
                     //O processo foi totalmente executado, então seu tempo de execução restante é 0
                     vetorPrincipal[0].tempoDeExecucaoAtual = 0;
-
 
                     removePaginasDaMemoria(vetorPrincipal[0], controle);
                     //Retira o processo executado da fila
@@ -270,7 +273,7 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
 
 // Função para calcular o tempo médio
 const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
-    console.log(listaDeProcessos)
+   //console.log(listaDeProcessos)
     let quantidadeDeProcessos = listaDeProcessos.length;
     let total_wt = 0,
         total_tat = 0;
@@ -326,7 +329,7 @@ function preenchePaginasNaMemoria(processo, controle) {
         let count = 0; //Controle para a página atual
         for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
             for (let j = 0; j < 5; j++) { //Percorre as 5 colunas
-                if (controle.matrixMemoria[i][j] == '-1') { //Se a poisção estiver livre
+                if (controle.matrixMemoria[i][j] == -1) { //Se a poisção estiver livre
                     let pagina = {
                         valor: processo.paginas[count],
                         processo: processo.id
@@ -370,11 +373,11 @@ function trataPaginas(processo, controle) {
 }
 
 function removePaginasDaMemoria(processo, controle) {
+    //console.log(controle.matrixMemoria)
     for (let count = 0; count < processo.paginas.length; count++) {
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
-        console.log(processo)
-        console.log(controle)
+       // console.log(processo)
         controle.matrixMemoria[i][j] = -1;
         controle.espacosVaziosMatrixMemoria++;
         processo.posicoesPaginas[count] = -1;
@@ -469,7 +472,7 @@ function temEspacoNoDisco(vetorDisco) {
 }
 
 function main() {
-    let n = 4;
+    let n = 3;
 
     let quantum = 2;
     let over = 1;
@@ -477,13 +480,13 @@ function main() {
     var teste = new Processo(1, 11, 5, 6, "ABCD");
     var teste2 = new Processo(2, 12, 4, 5, "MFJD");
     var teste3 = new Processo(3, 8, 2, 3, "ÇVCX");
-    var teste4 = new Processo(3, 3, 4, 6, "hijk");
+    //var teste4 = new Processo(3, 3, 4, 6, "hijk");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
-    listaDeProcessos[3] = teste4;
+    //listaDeProcessos[3] = teste4;
 
     let retorno = findavgTimeEDF(listaDeProcessos, quantum, over);
 
