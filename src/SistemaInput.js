@@ -1,3 +1,6 @@
+/* 
+Classe básica do Sistema, que guarda o Quantum e a Sobrecarga.
+*/
 class SistemaInput {
     constructor(quantum = 0, sobrecarga = 0) {
         this.quantum = quantum;

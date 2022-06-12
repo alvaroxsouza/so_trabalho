@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 
 
+/* 
+Faz a mudança na Geometria do retãngulo, ajustando os valores do objeto para ser mudado na scena.
+*/
 function mudaGeometria(retang, posicaoInicialX = 0, velocidadeAtual = 0, posicaoMinY = 0, posicaoMaxY = 0, color = 0x00FF00) {
     const verticesTriangulo = [];
     verticesTriangulo.push(posicaoInicialX, posicaoMinY - 2, 0.0);
@@ -18,6 +21,9 @@ function mudaGeometria(retang, posicaoInicialX = 0, velocidadeAtual = 0, posicao
     })
 }
 
+/* 
+Faz a criação do Retângulo básico como Objeto Gráfico, para ser colocado na cena.
+*/
 function criaRetangulo(color = 0x00FF00) {
     const verticesTriangulo = [];
     verticesTriangulo.push(0.0, 0.0, 0.0);
