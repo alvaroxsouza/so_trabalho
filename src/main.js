@@ -3,12 +3,12 @@ import { FontLoader } from 'FontLoader';
 import { TextGeometry } from 'TextGeometry';
 import { GUI } from 'GUI';
 import { PointerLockControls } from 'PointerLockControls';
-import { Processo } from './pagina2/Processo.js';
+import { Processo } from './Processo.js';
 import { SistemaInput } from './SistemaInput.js';
-import { findTurnAroundTimeFIFO } from './pagina2/FIFO.js';
-import { findavgTimeSJF } from './pagina2/SJF.js';
-import { findavgTimeRR } from './pagina2/RR.js';
-import { findavgTimeEDF } from './pagina2/EDF.js';
+import { findTurnAroundTimeFIFO } from './FIFO.js';
+import { findavgTimeSJF } from './SJF.js';
+import { findavgTimeRR } from './RR.js';
+import { findavgTimeEDF } from './EDF.js';
 import { criaRetangulo, mudaGeometria } from './RetanguloObjetoGrafico.js';
 
 const LIMITE_SUPERIOR = 1000;
