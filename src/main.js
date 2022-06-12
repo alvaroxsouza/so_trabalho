@@ -317,6 +317,62 @@ function mostrarValoresTatWt(text = "", value, interval = 0) {
     return textMesh;
 }
 
+function criaLegenda(texto, ret, interval = 0) {
+    const textoDeApresentacao = texto;
+    const loader = new FontLoader();
+    let textMesh1 = new THREE.Mesh();
+    loader.load('src/helvetiker_regular.typeface.json', function(font) {
+        const textGeo = new TextGeometry(textoDeApresentacao, {
+            font: font,
+            size: 0.4,
+            height: 0.001,
+            curveSegments: 12,
+            bevelThickness: 0.1,
+            bevelSize: 0.001,
+            bevelEnabled: true
+        });
+
+        textGeo.computeBoundingBox();
+
+        const materials = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+        textMesh1.geometry = textGeo;
+        textMesh1.material = materials;
+
+        textMesh1.position.x = 3 + interval;
+        textMesh1.position.y = -4;
+
+        let intervaloRet = interval + 1.8;
+
+        mudaGeometria(ret, intervaloRet, intervaloRet + 1, -3, -1, ret.material.color);
+
+        // mudaGeometria(ret, -5, 1, interval - 2, interval, ret.material.color);
+
+    })
+
+    scene.add(textMesh1)
+}
+
+/* 
+Faz o desenho da legenda dos processos
+*/
+function desenhaLegenda() {
+    let textoDaLegendaProcessoExecutando = "Executado";
+    let textoDaLegendaProcessoDeadline = "Deadline Estourado";
+    let textoDaLegendaProcessoSobrecarga = "Sobrecarga";
+
+    let retanguloProcessoExecutando = criaRetangulo();
+    let retanguloProcessoDeadline = criaRetangulo(0xFF0000);
+    let retanguloProcessoSobrecarga = criaRetangulo(0xAAAAAA);
+
+    scene.add(retanguloProcessoExecutando)
+    scene.add(retanguloProcessoDeadline)
+    scene.add(retanguloProcessoSobrecarga)
+
+    criaLegenda(textoDaLegendaProcessoExecutando, retanguloProcessoExecutando);
+    criaLegenda(textoDaLegendaProcessoDeadline, retanguloProcessoDeadline, 6);
+    criaLegenda(textoDaLegendaProcessoSobrecarga, retanguloProcessoSobrecarga, 14);
+}
+
 /* 
 Faz a mudança de geometria que basicamente é animar a cena, fazendo com que os retângulos sejam desenhados na cena,
 que nada mais é que basicamente mudar a geometria dos retângulos que estão carregados na cena, fazendo isso
@@ -340,6 +396,7 @@ function desenhaExecucaoDeProcesso(retanguloMudanca, numeroDoProcesso = 0, tempo
         const ultimoRetangulo = listaDeRetangulos[listaDeRetangulos.length - 1];
         if (ultimoRetangulo && !flag) {
             if (tempoFinal == listaDeRetangulos[listaDeRetangulos.length - 1].tempoFinal) {
+                desenhaLegenda();
                 podeEscrever = true;
                 flag = true;
             }
