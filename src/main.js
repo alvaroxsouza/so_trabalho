@@ -357,12 +357,12 @@ Faz o desenho da legenda dos processos
 */
 function desenhaLegenda() {
     let textoDaLegendaProcessoExecutando = "Executado";
-    let textoDaLegendaProcessoDeadline = "Deadline Estourado";
+    let textoDaLegendaProcessoDeadline = "Deadline  ";
     let textoDaLegendaProcessoSobrecarga = "Sobrecarga";
 
     let retanguloProcessoExecutando = criaRetangulo();
-    let retanguloProcessoDeadline = criaRetangulo(0xFF0000);
-    let retanguloProcessoSobrecarga = criaRetangulo(0xAAAAAA);
+    let retanguloProcessoDeadline = criaRetangulo(0xAAAAAA);
+    let retanguloProcessoSobrecarga = criaRetangulo(0xFF0000);
 
     scene.add(retanguloProcessoExecutando)
     scene.add(retanguloProcessoDeadline)
