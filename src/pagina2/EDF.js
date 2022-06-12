@@ -375,7 +375,8 @@ function removePaginasDaMemoria(processo, controle) {
         let j = processo.posicoesPaginas[count].j;
         console.log(processo)
         console.log(controle)
-        controle.matrixMemoria[i][j] = -1;
+        if (processo.posicoesPaginas[count] != -1)
+            controle.matrixMemoria[i][j] = -1;
         controle.espacosVaziosMatrixMemoria++;
         processo.posicoesPaginas[count] = -1;
     }

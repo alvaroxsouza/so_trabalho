@@ -21,7 +21,7 @@ const ALTURA = 500;
 const ESQUERDA_CAMERA = -5;
 const DIREITA_CAMERA = 30;
 const CIMA_CAMERA = 40;
-const BAIXO_CAMERA = -1;
+const BAIXO_CAMERA = -10;
 
 const gui = new GUI({ name: "Escalonamento", width: 300 });
 
@@ -35,7 +35,8 @@ let velocidadeDaAnimacao = 0.001;
 let velocidadeAnimacaoAnterior = 0;
 let velocidadeAtual = 0.1;
 let algoritmoOption;
-let listaDeRetangulos = []
+let listaDeRetangulos = [];
+let listaDeIdentificadoresGraficos = [];
 let quantidadeDeProcessos = 0;
 const listaDeProcessos = [];
 let turnAround = 0;
@@ -45,7 +46,11 @@ const sistema = new SistemaInput();
 /* Pastas do GUI */
 let sistemaFolder, processosFolder, iniciarProcessosFolder, algoritmosFolder;
 
-
+/*
+Faz a gestão de controle da pasta do sistema, fazendo a criação do objeto Sistema que contém dois atributos
+importantes para os algoritmos de escalonamento, que é a Sobrecarga e o Quantum. Com essas duas informações,
+cria um Objeto do tipo Sistema e passa essa informaçãao para a aplicação poder fazer o uso posteriormente.
+ */
 function controlFolderSistema() {
     sistemaFolder = gui.addFolder('Sistema');
     let objetoSistema = { Quantum: 0, Sobrecarga: 0 }
@@ -56,6 +61,11 @@ function controlFolderSistema() {
     sistemaFolder.open()
 }
 
+/* 
+Faz a Gestão do controle dos processos presentes na Aplicação. Dentre as operações presentes nesse controle,
+estão as funções de adicionar um processo e a de removê-lo do Sistema a partir do clique do botão na GUI da
+Aplicação.
+*/
 function controlFolderProcessos() {
     processosFolder = gui.addFolder('Processos');
     let processos = { 'Adiciona Processo': addProcesso, 'Remove Processo': removeProcesso };
@@ -64,10 +74,17 @@ function controlFolderProcessos() {
     processosFolder.open()
 }
 
+/* 
+Faz a Gestão do controle do Algoritmo de Escalonamento que será escolhido para ser animado, entre eles:
+ - FIFO
+ - RR
+ - EDF
+ - SJF
+*/
 function controlAlgoritmosFolder() {
     algoritmosFolder = gui.addFolder('Algoritmos de Escalonamento');
     let entradaVazia = { Algoritmo: '' };
-    const algoritmosDeEscalonamento = ['FIFO', 'Round-Robin', 'EDF', 'SJF'];
+    const algoritmosDeEscalonamento = ['FIFO', 'RR', 'EDF', 'SJF'];
     algoritmosFolder.add(entradaVazia, 'Algoritmo').options(algoritmosDeEscalonamento)
         .onChange((value) => {
             algoritmoOption = value;
@@ -75,6 +92,10 @@ function controlAlgoritmosFolder() {
     algoritmosFolder.open()
 }
 
+/* 
+Faz o controle da animação da Cena, fazendo o início da cena, após a adição de processos, escolha do algoritmo
+e também faz o controle do delay da animação.
+*/
 function controlIniciarFolder() {
     iniciarProcessosFolder = gui.addFolder('Iniciar');
     let iniciarProcessos = { Inicia: iniciar, 'Velocidade da animação': 0 };
@@ -86,11 +107,18 @@ function controlIniciarFolder() {
     iniciarProcessosFolder.open()
 }
 
+/* 
+Função que tem como objetivo a criação de um processo e adição do mesmo na lista de processos, para posteriormente
+passar para o algoritmo de escalonamento e ser processado de acordo com suas especificidades.
+Faz a criação do processo e lista-o, além de Fazer o controle do Tempo de execução, Chegada, Deadline e também
+as suas páginas de memória.
+*/
 function addProcesso() {
     quantidadeDeProcessos++;
     let processoCorrenteController = processosFolder.addFolder('Processo ' + quantidadeDeProcessos);
     let processoVariaveis = { 'Tempo de Chegada': 0, 'Tempo de Execução': 0, 'Deadline': 0, 'Páginas': "" }
     const processoCorrente = new Processo(quantidadeDeProcessos)
+    processoCorrenteController.open();
     processoCorrenteController.add(processoVariaveis, 'Tempo de Chegada', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
         .onChange((value) => { processoCorrente.setTempoDeChegada(value); });
     processoCorrenteController.add(processoVariaveis, 'Tempo de Execução', LIMITE_INFERIOR, LIMITE_SUPERIOR, 1)
@@ -110,6 +138,9 @@ function addProcesso() {
     listaDeProcessos.push(processoCorrente)
 }
 
+/* 
+Remove um processo da lista de processos, sendo este processo o último a ser adicionado na lista.
+*/
 function removeProcesso() {
     if (quantidadeDeProcessos > 0) {
         processosFolder.removeFolder(gui.__folders.Processos.__folders['Processo ' + quantidadeDeProcessos])
@@ -118,12 +149,15 @@ function removeProcesso() {
     }
 }
 
+/* 
+Função que inicia os retângulos gráficos e adiciona na scena os mesmos
+*/
 function iniciaRetangulos(listaDeRetangulos) {
-    listaDeRetangulos.forEach(r => {
+    listaDeRetangulos.forEach(retangulo => {
         let ret;
-        if (r.isSobrecarga() || r.isSobrecarga() && r.isSobrecarga()) {
+        if (retangulo.isSobrecarga() || retangulo.isSobrecarga() && r.isSobrecarga()) {
             ret = criaRetangulo(0.0, 0.0, 0.0, 0xaa0000);
-        } else if (r.isDeadlineBool() && !r.isSobrecarga()) {
+        } else if (retangulo.isDeadlineBool() && !retangulo.isSobrecarga()) {
             ret = criaRetangulo(0.0, 0.0, 0.0, 0xAAAAAA);
         } else {
             ret = criaRetangulo(0.0, 0.0, 0.0);
@@ -132,6 +166,55 @@ function iniciaRetangulos(listaDeRetangulos) {
     })
 }
 
+/* 
+Faz a adição na cena do processo ID, que é um P + id do processo, para fazer uma identificação melhor na animação,
+sendo melhor para o usuário ver quando usar a Aplicação.
+*/
+function criarIdProcessoObjetoDeCena(idProcesso) {
+    const textoDeApresentacao = "P" + parseInt(idProcesso);
+    const loader = new FontLoader();
+    let textMesh = new THREE.Mesh();
+    loader.load('src/helvetiker_regular.typeface.json', function(font) {
+        const textGeo = new TextGeometry(textoDeApresentacao, {
+            font: font,
+            size: 0.55,
+            height: 0.001,
+            curveSegments: 20,
+            bevelThickness: 0.2,
+            bevelSize: 0.01,
+            bevelEnabled: true
+        });
+
+        textGeo.computeBoundingBox();
+
+        const materials = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true });
+
+        textMesh.geometry = textGeo;
+        textMesh.material = materials;
+
+        textMesh.position.x = -1;
+        textMesh.position.y = (idProcesso + (idProcesso - 1));
+    })
+
+    return textMesh;
+}
+
+/* 
+Função que lista os identificadores de processo para serem colocados na cena.
+*/
+function identificarProcessos(listaDeProcessos) {
+    listaDeIdentificadoresGraficos = [];
+    listaDeProcessos.forEach((processoListado) => {
+        const processoId = criarIdProcessoObjetoDeCena(processoListado.id);
+        scene.add(processoId);
+        listaDeIdentificadoresGraficos.push(processoId);
+    })
+}
+
+/* 
+Faz um remapeamento de todos os processo, juntando as informações do processo e recriando-o com as informações
+mais precisas para ser usado para executar o algoritmo de escalonamento.
+*/
 function remapeamentoDeProcesso(listaDeProcessos) {
     let newList = [];
     for (let i = 0; i < listaDeProcessos.length; i++) {
@@ -146,11 +229,15 @@ function remapeamentoDeProcesso(listaDeProcessos) {
     }) */
 }
 
+/* 
+Função que executa o algoritmo de escalonamento e inicia a lista de retângulos para serem colocadas na cena.
+*/
 function executaAlgoritmoDeEscalonamento(value) {
     switch (value) {
         case "FIFO":
             if (listaDeProcessos.length > 0) {
                 let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                identificarProcessos(listaDeProcessos);
                 let obj = findTurnAroundTimeFIFO(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
@@ -160,9 +247,10 @@ function executaAlgoritmoDeEscalonamento(value) {
                 iniciaRetangulos(listaDeRetangulos, listaDeRetangulosGraficos);
             }
             break;
-        case "Round-Robin":
+        case "RR":
             if (listaDeProcessos.length > 0) {
                 let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                identificarProcessos(listaDeProcessos);
                 let obj = findavgTimeRR(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
@@ -175,6 +263,7 @@ function executaAlgoritmoDeEscalonamento(value) {
         case "EDF":
             if (listaDeProcessos.length > 0) {
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
+                identificarProcessos(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
                 console.log(listaDeRetangulos)
                 turnAround = obj.Tat;
@@ -187,6 +276,7 @@ function executaAlgoritmoDeEscalonamento(value) {
         case "SJF":
             if (listaDeProcessos.length > 0) {
                 let newlist = remapeamentoDeProcesso(listaDeProcessos);
+                identificarProcessos(listaDeProcessos);
                 let obj = findavgTimeSJF(newlist, sistema.getQuantum(), sistema.getSobrecarga());
                 listaDeRetangulos = obj.listaDeRetangulos;
                 turnAround = obj.Tat;
@@ -199,35 +289,47 @@ function executaAlgoritmoDeEscalonamento(value) {
     }
 }
 
-function mostrarTextoDeVariaveis(text = "", value, interval = 0) {
+/* 
+Função que cria os textos para serem colocados na tela. São as seguintes informações:
+- Turnaround.
+- Waiting Time (Tempo de espera).
+*/
+function mostrarValoresTatWt(text = "", value, interval = 0) {
     const textoDeApresentacao = text + ": " + parseFloat(value);
     const loader = new FontLoader();
-    let textMesh1 = new THREE.Mesh();
+    let textMesh = new THREE.Mesh();
     loader.load('src/helvetiker_regular.typeface.json', function(font) {
         const textGeo = new TextGeometry(textoDeApresentacao, {
             font: font,
-            size: 0.55,
-            height: 0.001,
+            size: 0.6,
+            height: 0.01,
             curveSegments: 20,
-            bevelThickness: 0.2,
+            bevelThickness: 1,
             bevelSize: 0.01,
             bevelEnabled: true
         });
 
         textGeo.computeBoundingBox();
 
-        const materials = new THREE.MeshBasicMaterial({ color: 0xaa0000, wireframe: true });
+        const materials = new THREE.MeshBasicMaterial({ color: 0x0000FF, wireframe: true });
 
-        textMesh1.geometry = textGeo;
-        textMesh1.material = materials;
+        textMesh.geometry = textGeo;
+        textMesh.material = materials;
 
-        textMesh1.position.x = -4.7;
-        textMesh1.position.y = 10 - interval;
+        textMesh.position.x = -4.7;
+        textMesh.position.y = -2.5 - interval;
     })
 
-    return textMesh1;
+    return textMesh;
 }
 
+/* 
+Faz a mudança de geometria que basicamente é animar a cena, fazendo com que os retângulos sejam desenhados na cena,
+que nada mais é que basicamente mudar a geometria dos retângulos que estão carregados na cena, fazendo isso
+com aa mudança da velocidade. Um Retângulo Gráfico nada mais é do que Dois retângulos que compõe um retângulo.
+Quando acaba de desenhar o ultimo Retângulo, faz com que a flag de pode desenhar na tela os valores de Turnaround
+e Waiting Time, que é o final da execução dos processos na cena.
+*/
 function desenhaExecucaoDeProcesso(retanguloMudanca, numeroDoProcesso = 0, tempoInicial = 0, tempoFinal = 0, color = 0x00ff00) {
     velocidadeAtual += (velocidadeDaAnimacao >= velocidadeAnimacaoAnterior) ? velocidadeDaAnimacao / 10000 : -(velocidadeDaAnimacao / 10000);
     velocidadeAnimacaoAnterior = velocidadeDaAnimacao;
@@ -252,6 +354,9 @@ function desenhaExecucaoDeProcesso(retanguloMudanca, numeroDoProcesso = 0, tempo
     }
 }
 
+/* 
+Faz a numeração dos eixos da cena, que nada mais é do que desenhar as linhas verticais, para facilitar a leitura. 
+*/
 function numeracaoDeEixos(value, interval) {
     const textoDeApresentacao = "" + value;
     const loader = new FontLoader();
@@ -282,6 +387,9 @@ function numeracaoDeEixos(value, interval) {
     return textMesh1;
 }
 
+/* 
+Faz a iniciação da cena, desenhando o básico para fazer posteriormente o carregamento da animação.
+*/
 function iniciarCena() {
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setClearColor(new THREE.Color(1.0, 1.0, 1.0));
@@ -308,8 +416,6 @@ function iniciarCena() {
     renderer.setSize(LARGURA, ALTURA);
     scene = new THREE.Scene();
 
-
-
     let numeroEixo = 0;
     for (let i = 0; i < NUMERO_MAXIMO_TEMPO; i++) {
         axesHelper = new THREE.AxesHelper(100);
@@ -320,9 +426,10 @@ function iniciarCena() {
         numeroEixo++;
     }
     renderer.render(scene, camera);
-    limparCena()
+    limparCena();
 }
 
+/* Renderiza a animação da cena, desenhando os retângulos */
 function render() {
     requestAnimationFrame(render);
     for (let i = 0; i < listaDeRetangulosGraficos.length; i++) {
@@ -338,16 +445,14 @@ function render() {
             }
             if (podeEscrever) {
                 if (turnAroundGrafico) {
-                    console.log("Entrou aqui 1")
                     scene.remove(turnAroundGrafico);
                 }
                 if (waitingTimeGrafico) {
-                    console.log("Entrou aqui 2")
                     scene.remove(waitingTimeGrafico);
                 }
-                turnAroundGrafico = mostrarTextoDeVariaveis("TurnAround\n", turnAround.toFixed(2));
+                turnAroundGrafico = mostrarValoresTatWt("Turnaround", turnAround.toFixed(2));
                 scene.add(turnAroundGrafico);
-                waitingTimeGrafico = mostrarTextoDeVariaveis("Tempo \nde Espera", waitingTime.toFixed(2), 3);
+                waitingTimeGrafico = mostrarValoresTatWt("Tempo \nde Espera", waitingTime.toFixed(2), 3);
                 scene.add(waitingTimeGrafico);
                 velocidadeAtual += 0.0;
                 podeEscrever = false;
@@ -358,6 +463,10 @@ function render() {
     renderer.render(scene, camera);
 }
 
+/* 
+Faz o controle da cena, fazendo com que seja possível caminhar pela cena e e olhando coisas que não estão sendo
+visualizadas no campo de visão normal do usuário.
+*/
 function controle(event) {
     if (controleDaCamera) {
         if (event.code == 'KeyW') {
@@ -380,6 +489,9 @@ function controle(event) {
     }
 }
 
+/* 
+Faz a limpeza da cena, fazendo com que retiremos os elementos não básicos da cena, poupando memória na execução.
+*/
 function limparCena() {
     if (scene.children.length > 201) {
         for (let i = scene.children.length - 1; i >= 201; i--) {
@@ -389,6 +501,9 @@ function limparCena() {
     }
 }
 
+/*
+Função chamada após clickar em "Iniciar" na GUI, para iniciar a cena.
+*/
 function iniciar() {
     limparCena();
     executaAlgoritmoDeEscalonamento(algoritmoOption, listaDeProcessos);
@@ -396,7 +511,10 @@ function iniciar() {
     render();
 }
 
-function init() {
+/*
+Função que carrega as funcionalidades básicas do sistema.
+*/
+function main() {
     controlFolderSistema();
     controlFolderProcessos();
     controlAlgoritmosFolder();
@@ -404,4 +522,4 @@ function init() {
     iniciarCena();
 }
 
-init();
+main();
