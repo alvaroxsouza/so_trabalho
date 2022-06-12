@@ -214,8 +214,12 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
 
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (listaDeProcessos) {
-            if (listaDeProcessos[i].turnAround > listaDeProcessos[i].deadline)
+            //console.log("TurnAroud " + listaDeProcessos[i].turnAround + " DeadLine " + listaDeProcessos[i].deadline)
+            if (listaDeProcessos[i].turnAround > (listaDeProcessos[i].deadline - listaDeProcessos[i].tempoDeChegada))
+            {
+                //console.log("Entrou")
                 listaDeProcessos[i].deadlineEstaEstourado = true;
+            }
         }
     }
 
@@ -472,7 +476,7 @@ function temEspacoNoDisco(vetorDisco) {
 }
 
 function main() {
-    let n = 3;
+    let n = 4;
 
     let quantum = 2;
     let over = 1;
@@ -480,15 +484,17 @@ function main() {
     var teste = new Processo(1, 11, 5, 6, "ABCD");
     var teste2 = new Processo(2, 12, 4, 5, "MFJD");
     var teste3 = new Processo(3, 8, 2, 3, "ÇVCX");
-    //var teste4 = new Processo(3, 3, 4, 6, "hijk");
+    var teste4 = new Processo(4, 3, 4, 6, "HIJK");
 
     var listaDeProcessos = new Array(n).fill(0);
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
-    //listaDeProcessos[3] = teste4;
+    listaDeProcessos[3] = teste4;
 
     let retorno = findavgTimeEDF(listaDeProcessos, quantum, over);
+
+    //console.log(retorno.listaDeRetangulos)
 
 
 
