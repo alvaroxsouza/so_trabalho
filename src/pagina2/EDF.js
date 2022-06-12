@@ -214,8 +214,12 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
 
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (listaDeProcessos) {
-            if (listaDeProcessos[i].turnAround > listaDeProcessos[i].deadline)
+            //console.log("TurnAroud " + listaDeProcessos[i].turnAround + " DeadLine " + listaDeProcessos[i].deadline)
+            if (listaDeProcessos[i].turnAround > (listaDeProcessos[i].deadline - listaDeProcessos[i].tempoDeChegada))
+            {
+                //console.log("Entrou")
                 listaDeProcessos[i].deadlineEstaEstourado = true;
+            }
         }
     }
 
@@ -489,6 +493,8 @@ function main() {
     listaDeProcessos[3] = teste4;
 
     let retorno = findavgTimeEDF(listaDeProcessos, quantum, over);
+
+    //console.log(retorno.listaDeRetangulos)
 
 
 
