@@ -3,6 +3,7 @@ import { Processo } from "./Processo.js";
 import { Retangulo } from "./Retangulo.js";
 import { FIFO } from "./FIFOPaginacao.js";
 
+// Função que executa o FIFO, fazendo o controle do disco, memória e páginas.
 function listaDeProcessosFIFO(listaDeProcessos, controle) {
     let tempoCorrente = 0;
 
@@ -19,8 +20,8 @@ function listaDeProcessosFIFO(listaDeProcessos, controle) {
     }
     listaDeProcessos.forEach((processo) => {
         if (processo.tempoDeChegada <= tempoCorrente) {
-            //Entra na memória virtual
-            //Caso a memória virtual esteja cheia, o processo é ignorado
+            //Entra no disco
+            //Caso o disco esteja cheio, o processo é ignorado
             let index = temEspacoNoDisco(controle.vetorDisco);
             if (index != -1) //tem espaço no disco
                 controle.vetorDisco[index] = processo.id;
@@ -77,6 +78,7 @@ function listaDeProcessosFIFO(listaDeProcessos, controle) {
     return listaDeRetangulos;
 }
 
+// Função principal que retorna os resultados para o Front
 function findTurnAroundTimeFIFO(listaDeProcessos) {
     //Matriz de memória RAM
     //Quando um processo estiver no disco, 
@@ -115,6 +117,7 @@ function findTurnAroundTimeFIFO(listaDeProcessos) {
     return retorno;
 }
 
+//Função que trata e altera a matriz de memória
 function preenchePaginasNaMemoria(processo, controle) {
     //Caso exista posições suficientes para todas as páginas
     if (controle.espacosVaziosMatrixMemoria >= processo.paginas.length) {
@@ -145,6 +148,7 @@ function preenchePaginasNaMemoria(processo, controle) {
     return false;
 }
 
+//Função que trata o vetor de páginas e chama o algoritmo de troca (FIFO)
 function trataPaginas(processo, controle) {
     let paginasParaTroca = [];
     let qtdDePaginas = processo.paginas.length;
@@ -164,6 +168,7 @@ function trataPaginas(processo, controle) {
     }
 }
 
+//Função que remove as páginas da matrix que não estão no vetor de páginas
 function removePaginasDaMemoria(processo, controle) {
     for (let count = 0; count < processo.paginas.length; count++) {
         let i = processo.posicoesPaginas[count].i;
@@ -174,6 +179,7 @@ function removePaginasDaMemoria(processo, controle) {
     }
 }
 
+//Gera a string com a matrix da memória
 function stringMatrix(controle) {
     let matrix = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
@@ -191,6 +197,7 @@ function stringMatrix(controle) {
     return matrix;
 }
 
+//Gera a string com a matrix do disco
 function stringDisco(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
@@ -208,6 +215,7 @@ function stringDisco(controle) {
     return vetor;
 }
 
+//Gera a string com a matrix de páginas
 function stringTabelaPaginas(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
@@ -233,6 +241,7 @@ function stringTabelaPaginas(controle) {
     return vetor;
 }
 
+//Faz o print no console dos valores principais
 function printResultados(listaDeRetangulos) {
     for (let i = 0; i < listaDeRetangulos.length; i++) {
         console.log("\n\n\n\n================== Tempo Atual: " + listaDeRetangulos[i].tempoInicial + " ==================\n")
@@ -249,6 +258,7 @@ function printResultados(listaDeRetangulos) {
     }
 }
 
+//Testa se existe espaço no disco
 function temEspacoNoDisco(vetorDisco) {
     for (let i = 0; i < vetorDisco.length; i++) {
         if (vetorDisco[i] == -1)

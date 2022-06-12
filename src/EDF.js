@@ -1,21 +1,15 @@
 import { Processo } from "./Processo.js";
 import { Retangulo } from "./Retangulo.js";
 import { LRU } from "./LRUPaginacao.js";
-/*
- * Para cada volta do looping, ordenamos o vetor de processos e testamos.
- * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
- * Se existir mais de 1 processo com o tempo de chegada >= tempo atual,
- * ordena pelo deadline e adiciona no vetor principal.
- */
 
-// Função que calcula o tempo de espera de cada processo
+// Função que executa o EDF, fazendo o controle do disco, memória e páginas.
 const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
-    let quantidadeDeProcessos = listaDeProcessos.length;
-    let tempoCorrente = 0; // Current time
-    let vetorPrincipal = []; //Inicia vetor principal (PRECISA ESTAR AQUI)
-    let vetorAuxiliar; //Vetor para ordenar pelo deadline
-    let vetorCopiaProcessos; //Vetor para ordenar pelo tempo de chegada
-    let listaDeRetangulos = [];
+    let quantidadeDeProcessos = listaDeProcessos.length; //Quantidade de processos adicionados
+    let tempoCorrente = 0; // Tempo atual
+    let vetorPrincipal = []; //Vetor principal por onde os processos vão ser executados
+    let vetorAuxiliar; //Vetor auxiliar onde os processos são ordenados pelo deadline
+    let vetorCopiaProcessos; //Vetor auxiliar onde os processos são ordenados pelo tempo de chegada
+    let listaDeRetangulos = []; //Lista de Retangulos para animação
 
     vetorCopiaProcessos = new Array(quantidadeDeProcessos).fill(0); //Faz uma cópia dos processos
     for (let i = 0; i < quantidadeDeProcessos; i++)
@@ -29,7 +23,6 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
         }
         return 0;
     });
-
 
     //Loop de execução
     while (1) {
@@ -63,8 +56,8 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
         if (vetorPrincipal && vetorPrincipal.length > 0) {
             if (vetorPrincipal[0].tempoDeExecucaoAtual > 0) {
                 retangulo.id = vetorPrincipal[0].id;
-                //Entra na memória virtual
-                //Caso a memória virtual esteja cheia, o processo é ignorado
+                //Entra no disco
+                //Caso o disco esteja cheio, o processo é ignorado
                 let index = temEspacoNoDisco(controle.vetorDisco);
                 let control = false;
                 if (index != -1) { //tem espaço no disco
@@ -171,7 +164,6 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                     }
                     //Se o vetor principal ficou vazio após a execução
                     //E todos os processos na cópia estão como 0, finaliza o loop
-                    //TODO if todos os elementos da cópia são iguais a zero
                     if (vetorPrincipal.length == 0) {
                         if (acabouProcesso(vetorCopiaProcessos, quantidadeDeProcessos)) {
                             break;
@@ -186,7 +178,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
     return listaDeRetangulos;
 }
 
-//Condição de parada
+//Função que faz o teste de parada para execução do EDF
 function acabouProcesso(vetorCopiaProcessos, quantidadeDeProcessos) {
     var acabou = true;
 
@@ -199,7 +191,7 @@ function acabouProcesso(vetorCopiaProcessos, quantidadeDeProcessos) {
     return acabou;
 }
 
-// Função para calcular TAT 
+// Função para calcular TAT de cada processo
 const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (listaDeProcessos) {
@@ -214,10 +206,8 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
 
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (listaDeProcessos) {
-            //console.log("TurnAroud " + listaDeProcessos[i].turnAround + " DeadLine " + listaDeProcessos[i].deadline)
             if (listaDeProcessos[i].turnAround > (listaDeProcessos[i].deadline - listaDeProcessos[i].tempoDeChegada))
             {
-                //console.log("Entrou")
                 listaDeProcessos[i].deadlineEstaEstourado = true;
             }
         }
@@ -275,9 +265,8 @@ const deadlineOverFlow = (listaDeRetangulos, listaDeProcessos) => {
     return listaDeRetangulosFinal;
 }
 
-// Função para calcular o tempo médio
+// Função principal que retorna os resultados para o Front
 const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
-    //console.log(listaDeProcessos)
     let quantidadeDeProcessos = listaDeProcessos.length;
     let total_wt = 0,
         total_tat = 0;
@@ -326,6 +315,7 @@ const findavgTimeEDF = (listaDeProcessos, quantum = 0, over = 0) => {
     return retorno;
 }
 
+//Função que trata e altera a matriz de memória
 function preenchePaginasNaMemoria(processo, controle) {
     //Caso exista posições suficientes para todas as páginas
     if (controle.espacosVaziosMatrixMemoria >= processo.paginas.length) {
@@ -355,6 +345,7 @@ function preenchePaginasNaMemoria(processo, controle) {
     return false;
 }
 
+//Função que trata o vetor de páginas e chama o algoritmo de troca (LRU)
 function trataPaginas(processo, controle) {
     let paginasParaTroca = [];
     let qtdDePaginas = processo.paginas.length;
@@ -367,27 +358,25 @@ function trataPaginas(processo, controle) {
         } else
             paginasParaTroca.push(processo.paginas[i]);
     }
-    //console.log(controle.paginas)
     if (paginasParaTroca.length > 0) {
         for (let i = 0; i < paginasParaTroca.length; i++) {
             LRU(controle.paginas, paginasParaTroca[i], 10);
-            //console.log(controle.paginas)
         }
     }
 }
 
+//Função que remove as páginas da matrix que não estão no vetor de páginas
 function removePaginasDaMemoria(processo, controle) {
-    //console.log(controle.matrixMemoria)
     for (let count = 0; count < processo.paginas.length; count++) {
         let i = processo.posicoesPaginas[count].i;
         let j = processo.posicoesPaginas[count].j;
-        // console.log(processo)
         controle.matrixMemoria[i][j] = -1;
         controle.espacosVaziosMatrixMemoria++;
         processo.posicoesPaginas[count] = -1;
     }
 }
 
+//Gera a string com a matrix da memória
 function stringMatrix(controle) {
     let matrix = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
@@ -405,6 +394,7 @@ function stringMatrix(controle) {
     return matrix;
 }
 
+//Gera a string com a matrix do disco
 function stringDisco(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
@@ -422,6 +412,7 @@ function stringDisco(controle) {
     return vetor;
 }
 
+//Gera a string com a matrix de páginas
 function stringTabelaPaginas(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
@@ -448,6 +439,7 @@ function stringTabelaPaginas(controle) {
     return vetor;
 }
 
+//Faz o print no console dos valores principais
 function printResultados(listaDeRetangulos) {
     for (let i = 0; i < listaDeRetangulos.length; i++) {
         console.log("\n\n\n\n================== Tempo Atual: " + listaDeRetangulos[i].tempoInicial + " ==================\n")
@@ -467,6 +459,7 @@ function printResultados(listaDeRetangulos) {
     }
 }
 
+//Testa se existe espaço no disco
 function temEspacoNoDisco(vetorDisco) {
     for (let i = 0; i < vetorDisco.length; i++) {
         if (vetorDisco[i] == -1)
@@ -506,6 +499,6 @@ function main() {
     //console.log(retorno.Wt);
 }
 
-main();
+//main();
 
 export { findavgTimeEDF }

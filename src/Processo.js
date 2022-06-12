@@ -12,8 +12,8 @@ class Processo {
         this.tempoQueComecou = 0; //Tempo que o processo comecou a executar
         this.paginas = paginas.substring(0,10); //Guarda as páginas a serem usadas no processo
         this.posicoesPaginas = new Array(this.paginas.length).fill('-1'); //Guarda as posicoes das paginas desse processo na matrix de memoria
-        this.foiExecutadoPriority = false;
-        this.ignorar = false;
+        this.foiExecutadoPriority = false; //Diz se o processo foi executado alguma vez no RR
+        this.ignorar = false; //Define se o processo deve ser ignorado caso o disco esteja cheio no RR
     }
 
     getId() {

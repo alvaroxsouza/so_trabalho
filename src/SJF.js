@@ -3,14 +3,7 @@ import { Processo } from "./Processo.js";
 import { Retangulo } from "./Retangulo.js";
 import { FIFO } from "./FIFOPaginacao.js";
 
-/*
- * Para cada volta do looping, ordenamos o vetor de processos e testamos.
- * Se existir 1 processo com o tempo tempo de chegada >= tempo atual, adiciona ao vetor.
- * Se existir mais de 1 processo com o tempo de chegada >= tempo atual,
- * ordena pelo tempo de execução e adiciona no vetor principal.
- */
-
-// Função que calcula o tempo de espera de cada processo
+// Função que executa o SJF, fazendo o controle do disco, memória e páginas.
 const findWaitingTime = (listaDeProcessos, controle) => {
     let quantidadeDeProcessos = listaDeProcessos.length;
     let tempoCorrente = 0; // Current time
@@ -61,8 +54,8 @@ const findWaitingTime = (listaDeProcessos, controle) => {
         //Se existir processo na fila
         if (vetorPrincipal && vetorPrincipal.length > 0) {
             if (vetorPrincipal[0].tempoDeExecucaoAtual > 0) {
-                //Entra na memória virtual
-                //Caso a memória virtual esteja cheia, o processo é ignorado
+                //Entra no disco
+                //Caso o disco esteja cheio, o processo é ignorado
                 let index = temEspacoNoDisco(controle.vetorDisco);
                 if (index != -1) //tem espaço no disco
                     controle.vetorDisco[index] = vetorPrincipal[0].id;
@@ -120,7 +113,7 @@ const findWaitingTime = (listaDeProcessos, controle) => {
     }
 }
 
-//Condição de parada
+//Função que faz o teste de parada para execução do SJF
 function acabouExecucao(vetorCopiaProcessos, quantidadeDeProcessos) {
     var acabou = true;
 
@@ -133,7 +126,7 @@ function acabouExecucao(vetorCopiaProcessos, quantidadeDeProcessos) {
     return acabou;
 }
 
-// Função para calcular TAT 
+// Função para calcular TAT de cada processo
 const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
 
     for (let i = 0; i < quantidadeDeProcessos; i++) {
@@ -143,7 +136,7 @@ const findTurnAroundTime = (listaDeProcessos, quantidadeDeProcessos) => {
     }
 }
 
-// Função para calcular o tempo médio
+// Função principal que retorna os resultados para o Front
 const findavgTimeSJF = (listaDeProcessos) => {
     let total_wt = 0,
         total_tat = 0;
@@ -189,6 +182,7 @@ const findavgTimeSJF = (listaDeProcessos) => {
     return retorno;
 }
 
+//Função que trata e altera a matriz de memória
 function preenchePaginasNaMemoria(processo, controle) {
     //Caso exista posições suficientes para todas as páginas
     if (controle.espacosVaziosMatrixMemoria >= processo.paginas.length) {
@@ -218,6 +212,7 @@ function preenchePaginasNaMemoria(processo, controle) {
     return false;
 }
 
+//Função que trata o vetor de páginas e chama o algoritmo de troca (FIFO)
 function trataPaginas(processo, controle) {
     let paginasParaTroca = [];
     let qtdDePaginas = processo.paginas.length;
@@ -237,6 +232,7 @@ function trataPaginas(processo, controle) {
     }
 }
 
+//Função que remove as páginas da matrix que não estão no vetor de páginas
 function removePaginasDaMemoria(processo, controle) {
     let quantidadeDePaginas = processo.paginas.length;
     for (let count = 0; count < quantidadeDePaginas; count++) {
@@ -248,6 +244,7 @@ function removePaginasDaMemoria(processo, controle) {
     }
 }
 
+//Gera a string com a matrix da memória
 function stringMatrix(controle) {
     let matrix = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     for (let i = 0; i < 10; i++) { //Percorre as 10 linhas
@@ -265,6 +262,7 @@ function stringMatrix(controle) {
     return matrix;
 }
 
+//Gera a string com a matrix do disco
 function stringDisco(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
@@ -282,6 +280,7 @@ function stringDisco(controle) {
     return vetor;
 }
 
+//Gera a string com a matrix de páginas
 function stringTabelaPaginas(controle) {
     let vetor = "\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0\xa0";
     let count = 0;
@@ -307,6 +306,7 @@ function stringTabelaPaginas(controle) {
     return vetor;
 }
 
+//Faz o print no console dos valores principais
 function printResultados(listaDeRetangulos) {
     for (let i = 0; i < listaDeRetangulos.length; i++) {
         console.log("\n\n\n\n================== Tempo Atual: " + listaDeRetangulos[i].tempoInicial + " ==================\n")
@@ -323,6 +323,7 @@ function printResultados(listaDeRetangulos) {
     }
 }
 
+//Testa se existe espaço no disco
 function temEspacoNoDisco(vetorDisco) {
     for (let i = 0; i < vetorDisco.length; i++) {
         if (vetorDisco[i] == -1)
@@ -335,7 +336,7 @@ function main() {
     let n = 3;
 
     var teste = new Processo(1, 0, 4, 0, "ABCD");
-    var teste2 = new Processo(2, 2, 6, 0, "MDFJD");
+    var teste2 = new Processo(2, 2, 6, 0, "MDFJ");
     var teste3 = new Processo(3, 4, 7, 0, "ÇVCX976");
 
     var listaDeProcessos = new Array(n).fill(0);
@@ -357,6 +358,6 @@ function main() {
      console.log(retorno.Wt);*/
 }
 
-main();
+//main();
 
 export { findavgTimeSJF }
