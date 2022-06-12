@@ -59,7 +59,7 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                     // Se o tempo de execução de um processo for maior que 0
                     // então precisa processar mais
                     if (priorityEndline[i].tempoDeExecucaoAtual > 0) {
-                        preenchePaginasNaMemoria(priorityEndline[i], controle);
+                        //console.log("Entrou 1 ")
 
                         if (aux["controle"]) {
                             aux["indice"] = -1;
@@ -67,6 +67,9 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                         }
 
                         if (priorityEndline[i].tempoDeExecucaoAtual > quantum) {
+                            //console.log("Entrou 2 = processo " + priorityEndline[i].id)
+                            preenchePaginasNaMemoria(priorityEndline[i], controle);
+
                             let retanguloSobrecarga = new Retangulo(priorityEndline[i].id, 0, true);
 
                             // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
@@ -107,18 +110,33 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
                         // Se o tempo de execução for menor ou igual ao quantum. 
                         // Último ciclo para este processo
                         else {
+                            /*
+                            console.log("Entrou 3 = processo " + priorityEndline[i].id)
+                            console.log("Antes de mexer na matrix")
+                            console.log(controle.matrixMemoria)*/
+                            preenchePaginasNaMemoria(priorityEndline[i], controle);
+                            /*console.log("Depois de mexer na matrix")
+                            console.log(controle.matrixMemoria)*/
                             // Aumenta o valor de t, ou seja, mostra quanto tempo um processo foi processado
                             tempoCorrente = tempoCorrente + priorityEndline[i].tempoDeExecucaoAtual;
                             // O tempo de espera é o tempo atual menos o tempo usado por este processo
                             priorityEndline[i].tempoDeEspera = tempoCorrente - priorityEndline[i].tempoDeExecucao - priorityEndline[i].tempoDeChegada;
-                            console.log("priorityEndline[i].tempoDeEspera = " + priorityEndline[i].tempoDeEspera);
+                            /*console.log("priorityEndline[i].tempoDeEspera = " + priorityEndline[i].tempoDeEspera);*/
                             // À medida que o processo é totalmente executado faz seu tempo de execução restante = 0
                             priorityEndline[i].tempoDeExecucaoAtual = 0;
 
                             let matrixMemoria = stringMatrix(controle);
                             let matrixDisco = stringDisco(controle);
                             let matrixPaginas = stringTabelaPaginas(controle);
-
+                            
+                            /*
+                            console.log("Id do processo a ser removido: " + priorityEndline[i].id)
+                            console.log("Vetor disco" + controle.vetorDisco)
+                            console.log("Vetor paginas " + controle.paginas)
+                            console.log("Vetor posicoes " + priorityEndline[i].posicoesPaginas)
+                            console.log("Vetor paginas do processo " + priorityEndline[i].paginas)
+                            console.log(controle.matrixMemoria)
+                            */
                             //Remove as páginas do processo que acabou da memória RAM
                             removePaginasDaMemoria(priorityEndline[i], controle);
                             retangulo.tempoFinal = tempoCorrente;
@@ -189,9 +207,11 @@ const findWaitingTime = (listaDeProcessos, quantum, overload, controle) => {
 const findTurnAroundTime = (quantidadeDeProcessos, priorityEndline) => {
     for (let i = 0; i < quantidadeDeProcessos; i++) {
         if (priorityEndline && priorityEndline[i].ignorar == false) {
+            /*
             console.log(priorityEndline[i].tempoDeExecucao)
             console.log(priorityEndline[i].tempoDeEspera)
             console.log(priorityEndline[i].tempoDeChegada)
+            */
             priorityEndline[i].turnAround = priorityEndline[i].tempoDeExecucao + priorityEndline[i].tempoDeEspera;
         }
         //tempo no processador = tempo de execução + tempo de espera - tempo de chegada
@@ -285,6 +305,19 @@ function preenchePaginasNaMemoria(processo, controle) {
                     }
                     if (processo.paginas.includes(controle.matrixMemoria[i][j].valor) && controle.matrixMemoria[i][j].processo != processo.id) {
                         controle.matrixMemoria[i][j].processo = processo.id;
+                        /* Trecho para guardar a posição da página que teve o dono trocado */
+                        if(processo.posicoesPaginas[processo.paginas.indexOf(controle.matrixMemoria[i][j].valor)] != -1){
+                            processo.posicoesPaginas[processo.paginas.indexOf(controle.matrixMemoria[i][j].valor)].i = i;
+                            processo.posicoesPaginas[processo.paginas.indexOf(controle.matrixMemoria[i][j].valor)].j = j;
+                        }
+                        else {
+                            let posicao = { //Objeto com a posição da página na matrix
+                                i: i,
+                                j: j
+                            }
+                            processo.posicoesPaginas[processo.paginas.indexOf(controle.matrixMemoria[i][j].valor)] = posicao;
+                        }
+                        /*  */
                         qtdDePaginasFaltantes.splice(qtdDePaginasFaltantes.indexOf(controle.matrixMemoria[i][j].valor), 1);
                     }
 
@@ -457,34 +490,20 @@ function jaEstaNoDisco(vetorDisco, id) {
 }
 
 function main() {
-    let n = 10;
+    let n = 3;
 
     let quantum = 2;
     let over = 1;
 
-    var teste = new Processo(1, 0, 2, 3, "abcd");
-    var teste2 = new Processo(2, 0, 1, 2, "cdwe");
-    var teste3 = new Processo(3, 0, 2, 3, "uvbn");
-    var teste4 = new Processo(4, 0, 7, 10, "efaq");
-    var teste5 = new Processo(5, 0, 4, 6, "nhxv");
-    var teste6 = new Processo(6, 0, 3, 5, "lkcd");
-    var teste7 = new Processo(7, 0, 1, 2, "pouy");
-    var teste8 = new Processo(8, 0, 10, 12, "zywh");
-    var teste9 = new Processo(9, 0, 18, 2, "cu");
-    var teste10 = new Processo(10, 0, 10, 12, "zywh");
+    var teste = new Processo(1, 11, 5, 6, "ABCD");
+    var teste2 = new Processo(2, 12, 4, 5, "MFJD");
+    var teste3 = new Processo(3, 8, 2, 3, "ÇVCX");
+    //var teste4 = new Processo(3, 3, 4, 6, "hijk");
 
     var listaDeProcessos = new Array(n).fill(0);
-
     listaDeProcessos[0] = teste;
     listaDeProcessos[1] = teste2;
     listaDeProcessos[2] = teste3;
-    listaDeProcessos[3] = teste4;
-    listaDeProcessos[4] = teste5;
-    listaDeProcessos[5] = teste6;
-    listaDeProcessos[6] = teste7;
-    listaDeProcessos[7] = teste8;
-    listaDeProcessos[8] = teste9;
-    listaDeProcessos[9] = teste10;
 
     ///var teste3 = new Processo(3, 0, 4, 0, "EF");
 
