@@ -222,11 +222,6 @@ function remapeamentoDeProcesso(listaDeProcessos) {
         newList.push(new Processo(processo.getId(), processo.getTempoDeChegada(), processo.getTempoDeExecucao(), processo.getDeadline(), processo.getPaginas()));
     }
     return newList;
-    /* return listaDeProcessos.map((processo) => {
-        processo = 
-        console.log(processo);
-        return processo;
-    }) */
 }
 
 /* 
@@ -265,7 +260,6 @@ function executaAlgoritmoDeEscalonamento(value) {
                 let obj = findavgTimeEDF(listaDeProcessos, sistema.getQuantum(), sistema.getSobrecarga());
                 identificarProcessos(listaDeProcessos);
                 listaDeRetangulos = obj.listaDeRetangulos;
-                console.log(listaDeRetangulos)
                 turnAround = obj.Tat;
                 waitingTime = obj.Wt;
             }
