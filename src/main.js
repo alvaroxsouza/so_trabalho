@@ -31,9 +31,11 @@ let turnAroundGrafico, waitingTimeGrafico;
 let podeEscrever = false,
     flag = false;
 let listaDeRetangulosGraficos = [];
+
 let velocidadeDaAnimacao = 0.001;
 let velocidadeAnimacaoAnterior = 0;
 let velocidadeAtual = 0.1;
+
 let algoritmoOption;
 let listaDeRetangulos = [];
 let listaDeIdentificadoresGraficos = [];
@@ -519,21 +521,22 @@ Faz o controle da cena, fazendo com que seja possível caminhar pela cena e e ol
 visualizadas no campo de visão normal do usuário.
 */
 function controle(event) {
+    console.log(event.code)
     if (controleDaCamera) {
-        if (event.code == 'KeyW') {
+        if (event.code == 'KeyW' || event.code == 'ArrowUp') {
             camera.position.y += 5;
         }
-        if (event.code == 'KeyS') {
+        if (event.code == 'KeyS' || event.code == 'ArrowDown') {
             if (camera.position.y > -5) {
                 camera.position.y -= 5;
             }
         }
-        if (event.code == 'KeyA') {
+        if (event.code == 'KeyA' || event.code == 'ArrowLeft') {
             if (camera.position.x > -5) {
                 camera.position.x -= 5;
             }
         }
-        if (event.code == 'KeyD') {
+        if (event.code == 'KeyD' || event.code == 'ArrowRight') {
             camera.position.x += 5;
         }
         camera.updateProjectionMatrix()
@@ -559,6 +562,8 @@ function iniciar() {
     limparCena();
     executaAlgoritmoDeEscalonamento(algoritmoOption, listaDeProcessos);
     velocidadeAtual = 0.0;
+    velocidadeAnimacaoAnterior = 0.0;
+    velocidadeDaAnimacao = 0.0;
     render();
 }
 
